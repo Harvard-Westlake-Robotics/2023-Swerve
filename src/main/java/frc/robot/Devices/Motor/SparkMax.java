@@ -1,20 +1,26 @@
-package frc.robot.Devices;
+package frc.robot.Devices.Motor;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-public class SparkMax {
+import frc.robot.Devices.MotorController;
+
+public class SparkMax extends MotorController {
     private CANSparkMax maxspark;
     private RelativeEncoder encoder;
-    private boolean isReversed;
 
     public SparkMax(int canID, boolean isReversed) {
+        super(isReversed);
+
         this.maxspark = new CANSparkMax(canID, MotorType.kBrushless);
+        this.maxspark.restoreFactoryDefaults();
         this.encoder = maxspark.getEncoder();
-        this.isReversed = isReversed;
         maxspark.setIdleMode(IdleMode.kCoast);
+
+        // sends a max of ten amps when stalling, 100 amps when not
+        maxspark.setSmartCurrentLimit(40, 100);
     }
 
     public void setBrake(boolean brake) {
@@ -22,33 +28,24 @@ public class SparkMax {
     }
 
     public SparkMax(int canID, boolean isReversed, boolean brakeMode) {
-        this.maxspark = new CANSparkMax(canID, MotorType.kBrushless);
-        this.encoder = maxspark.getEncoder();
-        this.isReversed = isReversed;
+        this(canID, isReversed);
         if (brakeMode)
             maxspark.setIdleMode(IdleMode.kBrake);
         else
             maxspark.setIdleMode(IdleMode.kCoast);
     }
 
-    public void setVoltage(double volts) {
-        maxspark.setVoltage((isReversed) ? -volts : volts);
-        /**
-         * This is a ternerary
-         * Equivalent to
-         * 
-         * if (isReversed)
-         * maxspark.setVoltage(-volts);
-         * else
-         * maxspark.setVoltage(volts);
-         * 
-         * If you don't understand and need to make a change, you can uncomment this
-         * code
-         */
+    protected void uSetVoltage(double volts) {
+        maxspark.setVoltage(volts);
     }
 
-    public double getPosition() {
-        return (isReversed) ? -encoder.getPosition() : encoder.getPosition();
+    protected double uGetRevs() {
+        return encoder.getPosition();
+    }
+
+    public void setCurrentLimit (int stall, int free)
+    {
+        maxspark.setSmartCurrentLimit(stall, free);
     }
 
     public void stop() {

@@ -8,12 +8,10 @@ import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Core.Scheduler;
-import frc.robot.Devices.Encoder;
-import frc.robot.Devices.LimitSwitch;
-import frc.robot.Devices.SparkMax;
-import frc.robot.Devices.Falcon;
+import frc.robot.Devices.Imu;
+import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
-import frc.robot.Util.*;
+import frc.robot.Util.PDController;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -25,11 +23,19 @@ import frc.robot.Util.*;
  * project.
  */
 public class Robot extends TimedRobot {
+  final boolean testing = false;
+
+  Scheduler scheduler = new Scheduler();
 
   PS4Controller con;
   Joystick joystick;
 
-  Drive drive;
+  SwerveModulePD leftFront;
+  SwerveModulePD rightFront;
+  SwerveModulePD leftBack;
+  SwerveModulePD rightBack;
+
+  Imu imu;
 
   // ! If you change the pd constant numbers (anywhere in this code) the related
   // ! subsystem might oscilate or harm somebody
@@ -41,44 +47,67 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    { // Drive initalization
-      
-    }
+    var con = new PDController(0.1, 0);
+
+    var leftBackTurn = new SparkMax(7, true);
+    var leftBackGo = new SparkMax(8, false);
+    var leftBackRaw = new SwerveModule(leftBackTurn, leftBackGo);
+    this.leftBack = new SwerveModulePD(leftBackRaw, con);
+
+    var rightBackTurn = new SparkMax(1, true);
+    var rightBackGo = new SparkMax(2, false);
+    var rightBackRaw = new SwerveModule(rightBackTurn, rightBackGo);
+    this.rightBack = new SwerveModulePD(rightBackRaw, con);
+
+    var leftFrontTurn = new SparkMax(5, true);
+    var leftFrontGo = new SparkMax(6, false);
+    var leftFrontRaw = new SwerveModule(leftFrontTurn, leftFrontGo);
+    this.leftFront = new SwerveModulePD(leftFrontRaw, con);
+
+    var rightFrontTurn = new SparkMax(3, true);
+    var rightFrontGo = new SparkMax(4, false);
+    var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
+    this.rightFront = new SwerveModulePD(rightFrontRaw, con);
   }
 
   @Override
   public void autonomousInit() {
-    Scheduler.getInstance().clear();
-
+    scheduler.clear();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    Scheduler.getInstance().tick();
+    scheduler.tick();
   }
 
   @Override
   public void teleopInit() {
-    Scheduler.getInstance().clear();
-    
+    scheduler.clear();
+    scheduler.registerTick(leftBack);
+
+    leftFront.setTurnTarget(20);
+
+    scheduler.setTimeout(() -> {
+      leftFront.setTurnTarget(-180);
+    }, 3);
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    Scheduler.getInstance().tick();
+    scheduler.tick();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
-    Scheduler.getInstance().clear();
-    
+    scheduler.clear();
   }
 
   @Override
   public void disabledPeriodic() {
+    // DO NOT RUN THE SCHEDULER WHILE DISABLED
   }
 
   /**
