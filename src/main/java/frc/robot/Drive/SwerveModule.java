@@ -1,8 +1,10 @@
 package frc.robot.Drive;
 
 import frc.robot.Devices.MotorController;
+import com.ctre.phoenix.sensors.CANCoder;
 
 public class SwerveModule {
+    private CANCoder angle;
     private MotorController turn;
     private MotorController go;
     
@@ -13,7 +15,7 @@ public class SwerveModule {
 
     public void setGoVoltage(double voltage) {
         go.setVoltage(voltage);
-    }
+    }   
 
     public void setTurnVoltage(double voltage) {
         turn.setVoltage(voltage);
@@ -24,6 +26,7 @@ public class SwerveModule {
     }
 
     public double getTurnReading() {
-        return turn.getDegrees();
+        return turn.getDegrees() / 12.8;
     }
 }
+ 

@@ -27,4 +27,8 @@ public class SwerveModulePD implements Tickable {
     public void setGoVoltage(double volts) {
         swerve.setGoVoltage(volts);
     }
+
+    public void resetEncoder() {
+        swerve.resetTurnReading();
+    }
 }
