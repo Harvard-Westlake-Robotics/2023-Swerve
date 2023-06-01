@@ -8,9 +8,12 @@ import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Core.Scheduler;
+import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
+import frc.robot.Util.AngleMath;
+import frc.robot.Util.Container;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Vector2;
 
@@ -49,25 +52,29 @@ public class Robot extends TimedRobot {
 
     var con = new PDController(0.08, 0.0);
 
+    var leftBackEncoder = new AbsoluteEncoder(21);
     var leftBackTurn = new SparkMax(7, true);
     var leftBackGo = new SparkMax(8, false);
     var leftBackRaw = new SwerveModule(leftBackTurn, leftBackGo);
-    var leftBack = new SwerveModulePD(leftBackRaw, con);
+    var leftBack = new SwerveModulePD(leftBackRaw, con, leftBackEncoder);
 
+    var rightBackEncoder = new AbsoluteEncoder(23);
     var rightBackTurn = new SparkMax(1, true);
     var rightBackGo = new SparkMax(2, false);
     var rightBackRaw = new SwerveModule(rightBackTurn, rightBackGo);
-    var rightBack = new SwerveModulePD(rightBackRaw, con);
+    var rightBack = new SwerveModulePD(rightBackRaw, con, rightBackEncoder);
 
+    var leftFrontEncoder = new AbsoluteEncoder(20);
     var leftFrontTurn = new SparkMax(5, true);
     var leftFrontGo = new SparkMax(6, false);
     var leftFrontRaw = new SwerveModule(leftFrontTurn, leftFrontGo);
-    var leftFront = new SwerveModulePD(leftFrontRaw, con);
+    var leftFront = new SwerveModulePD(leftFrontRaw, con, leftFrontEncoder);
 
+    var rightFrontEncoder = new AbsoluteEncoder(22);
     var rightFrontTurn = new SparkMax(3, true);
     var rightFrontGo = new SparkMax(4, false);
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
-    var rightFront = new SwerveModulePD(rightFrontRaw, con);
+    var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
 
     this.drive = new Drive(leftFront, rightFront, leftBack, rightBack);
   }
@@ -91,10 +98,16 @@ public class Robot extends TimedRobot {
 
     scheduler.registerTick(drive);
 
+    var angle = new Container<Double>(0.0);
     scheduler.registerTick((double dTime) -> {
-      drive.setAngle((new Vector2(con.getLeftX(), con.getLeftY())).getAngleDeg());
+      angle.val = AngleMath.conformAngle((new Vector2(con.getLeftX(), con.getLeftY())).getAngleDeg());
+      drive.setAngle(angle.val);
       // drive.setGoVoltage((new Vector2(con.getLeftX(), con.getLeftY())).getMagnitude());
     });
+
+    scheduler.setInterval(() -> {
+      System.out.println(angle.val);
+    }, 0.8);
   }
 
   /** This function is called periodically during operator control. */
