@@ -52,25 +52,25 @@ public class Robot extends TimedRobot {
 
     var con = new PDController(0.08, 0.0);
 
-    var leftBackEncoder = new AbsoluteEncoder(21);
+    var leftBackEncoder = new AbsoluteEncoder(21, true);
     var leftBackTurn = new SparkMax(7, true);
     var leftBackGo = new SparkMax(8, false);
     var leftBackRaw = new SwerveModule(leftBackTurn, leftBackGo);
     var leftBack = new SwerveModulePD(leftBackRaw, con, leftBackEncoder);
 
-    var rightBackEncoder = new AbsoluteEncoder(23);
+    var rightBackEncoder = new AbsoluteEncoder(23, true);
     var rightBackTurn = new SparkMax(1, true);
     var rightBackGo = new SparkMax(2, false);
     var rightBackRaw = new SwerveModule(rightBackTurn, rightBackGo);
     var rightBack = new SwerveModulePD(rightBackRaw, con, rightBackEncoder);
 
-    var leftFrontEncoder = new AbsoluteEncoder(20);
+    var leftFrontEncoder = new AbsoluteEncoder(20, true);
     var leftFrontTurn = new SparkMax(5, true);
     var leftFrontGo = new SparkMax(6, false);
     var leftFrontRaw = new SwerveModule(leftFrontTurn, leftFrontGo);
     var leftFront = new SwerveModulePD(leftFrontRaw, con, leftFrontEncoder);
 
-    var rightFrontEncoder = new AbsoluteEncoder(22);
+    var rightFrontEncoder = new AbsoluteEncoder(22, true);
     var rightFrontTurn = new SparkMax(3, true);
     var rightFrontGo = new SparkMax(4, false);
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
@@ -93,8 +93,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     scheduler.clear();
-
-    drive.resetEncoders();
 
     scheduler.registerTick(drive);
 

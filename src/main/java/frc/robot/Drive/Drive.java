@@ -35,11 +35,4 @@ public class Drive implements Tickable {
         backLeft.tick(dTime);
         backRight.tick(dTime);
     }
-
-    public void resetEncoders() {
-        frontLeft.resetEncoder();
-        frontRight.resetEncoder();
-        backLeft.resetEncoder();
-        backRight.resetEncoder();
-    }
 }

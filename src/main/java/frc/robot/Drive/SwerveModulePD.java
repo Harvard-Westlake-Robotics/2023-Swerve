@@ -2,10 +2,12 @@ package frc.robot.Drive;
 
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Util.AngleMath;
+import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Tickable;
 
 public class SwerveModulePD implements Tickable {
+    double id = Math.random();
     SwerveModule swerve;
     PDController controller;
     AbsoluteEncoder coder;
@@ -18,9 +20,24 @@ public class SwerveModulePD implements Tickable {
 
     Double turnTarget = null;
 
+    DeSpam logError = new DeSpam(500);
+
     public void tick(double dTime) {
         if (turnTarget != null) {
-            swerve.setTurnVoltage(controller.solve(AngleMath.conformAngle(turnTarget) - AngleMath.conformAngle(-coder.absVal())));
+            var frontFaceError = AngleMath.getDelta(turnTarget, coder.absVal());
+            var backFaceError = AngleMath.getDelta(turnTarget - 180, coder.absVal());
+            var error = AngleMath.minMagnitude(frontFaceError, backFaceError);
+            logError.exec(() -> {
+                System.out.println("error: " + error + " id: " + id);
+            });
+            boolean isFrontFacing = error == frontFaceError;
+
+            if (isFrontFacing != this.frontFacing) {
+                this.frontFacing = isFrontFacing;
+                swerve.setGoVoltage(frontFacing ? voltage : -voltage);
+            }
+
+            swerve.setTurnVoltage(-controller.solve(error));
         }
     }
 
@@ -28,11 +45,11 @@ public class SwerveModulePD implements Tickable {
         turnTarget = degrees;
     }
 
-    public void setGoVoltage(double volts) {
-        swerve.setGoVoltage(volts);
-    }
+    boolean frontFacing = true;
+    double voltage = 0;
 
-    public void resetEncoder() {
-        swerve.resetTurnReading();
+    public void setGoVoltage(double volts) {
+        voltage = volts;
+        swerve.setGoVoltage(frontFacing ? volts : -volts);
     }
 }
