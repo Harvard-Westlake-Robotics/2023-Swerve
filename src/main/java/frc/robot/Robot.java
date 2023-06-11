@@ -58,7 +58,7 @@ public class Robot extends TimedRobot {
     var leftBackRaw = new SwerveModule(leftBackTurn, leftBackGo);
     var leftBack = new SwerveModulePD(leftBackRaw, con, leftBackEncoder);
 
-    var rightBackEncoder = new AbsoluteEncoder(23, true);
+    var rightBackEncoder = new AbsoluteEncoder(23, 13.535, true);
     var rightBackTurn = new SparkMax(1, true);
     var rightBackGo = new SparkMax(2, false);
     var rightBackRaw = new SwerveModule(rightBackTurn, rightBackGo);
@@ -70,7 +70,7 @@ public class Robot extends TimedRobot {
     var leftFrontRaw = new SwerveModule(leftFrontTurn, leftFrontGo);
     var leftFront = new SwerveModulePD(leftFrontRaw, con, leftFrontEncoder);
 
-    var rightFrontEncoder = new AbsoluteEncoder(22, true);
+    var rightFrontEncoder = new AbsoluteEncoder(22, -133.154, true);
     var rightFrontTurn = new SparkMax(3, true);
     var rightFrontGo = new SparkMax(4, false);
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
@@ -100,7 +100,8 @@ public class Robot extends TimedRobot {
     scheduler.registerTick((double dTime) -> {
       angle.val = AngleMath.conformAngle((new Vector2(con.getLeftX(), con.getLeftY())).getAngleDeg());
       drive.setAngle(angle.val);
-      // drive.setGoVoltage((new Vector2(con.getLeftX(), con.getLeftY())).getMagnitude());
+      // drive.setGoVoltage((new Vector2(con.getLeftX(),
+      // con.getLeftY())).getMagnitude());
     });
 
     scheduler.setInterval(() -> {
