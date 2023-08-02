@@ -3,16 +3,17 @@ package frc.robot.Util;
 import edu.wpi.first.wpilibj.Timer;
 
 public class DeSpam {
-    private int lastTime = 0;
-    private int minTimeDiff;
+    private double lastTime = 0;
+    private double minTimeDiff;
 
-    public DeSpam(int minTimeDiff) {
-        this.minTimeDiff = minTimeDiff;
+    public DeSpam(double minTimeDiffSec) {
+        this.minTimeDiff = minTimeDiffSec;
     }
 
     public boolean exec(Lambda func) {
         if (Timer.getFPGATimestamp() - lastTime > minTimeDiff) {
             func.run();
+            lastTime = Timer.getFPGATimestamp();
             return true;
         }
         return false;

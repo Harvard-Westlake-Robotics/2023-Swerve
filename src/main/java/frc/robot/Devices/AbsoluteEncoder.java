@@ -37,6 +37,6 @@ public class AbsoluteEncoder {
      * Degrees, -180 to 180
      */
     public double absVal() {
-        return AngleMath.conformAngle( reverse(coder.getAbsolutePosition() + zeroReading));
+        return AngleMath.conformAngle(reverse(coder.getAbsolutePosition() - zeroReading));
     }
 }

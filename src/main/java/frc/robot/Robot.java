@@ -14,6 +14,7 @@ import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.Container;
+import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Vector2;
 
@@ -34,7 +35,7 @@ public class Robot extends TimedRobot {
   PS4Controller con;
   Joystick joystick;
 
-  Drive drive;
+  DriveTwo drive;
 
   Imu imu;
 
@@ -52,31 +53,31 @@ public class Robot extends TimedRobot {
 
     var con = new PDController(0.08, 0.0);
 
-    var leftBackEncoder = new AbsoluteEncoder(21, true);
+    var leftBackEncoder = new AbsoluteEncoder(21, -82.969, true);
     var leftBackTurn = new SparkMax(7, true);
     var leftBackGo = new SparkMax(8, false);
     var leftBackRaw = new SwerveModule(leftBackTurn, leftBackGo);
     var leftBack = new SwerveModulePD(leftBackRaw, con, leftBackEncoder);
 
-    var rightBackEncoder = new AbsoluteEncoder(23, 13.535, true);
+    var rightBackEncoder = new AbsoluteEncoder(23, 45.879, true);
     var rightBackTurn = new SparkMax(1, true);
     var rightBackGo = new SparkMax(2, false);
     var rightBackRaw = new SwerveModule(rightBackTurn, rightBackGo);
     var rightBack = new SwerveModulePD(rightBackRaw, con, rightBackEncoder);
 
-    var leftFrontEncoder = new AbsoluteEncoder(20, true);
+    var leftFrontEncoder = new AbsoluteEncoder(20, -129.639, true);
     var leftFrontTurn = new SparkMax(5, true);
     var leftFrontGo = new SparkMax(6, false);
     var leftFrontRaw = new SwerveModule(leftFrontTurn, leftFrontGo);
     var leftFront = new SwerveModulePD(leftFrontRaw, con, leftFrontEncoder);
 
-    var rightFrontEncoder = new AbsoluteEncoder(22, -133.154, true);
+    var rightFrontEncoder = new AbsoluteEncoder(22, 82.969, true);
     var rightFrontTurn = new SparkMax(3, true);
     var rightFrontGo = new SparkMax(4, false);
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
 
-    this.drive = new Drive(leftFront, rightFront, leftBack, rightBack);
+    this.drive = new DriveTwo(leftFront, rightFront, leftBack, rightBack);
   }
 
   @Override
@@ -90,23 +91,31 @@ public class Robot extends TimedRobot {
     scheduler.tick();
   }
 
+
   @Override
   public void teleopInit() {
     scheduler.clear();
 
     scheduler.registerTick(drive);
 
-    var angle = new Container<Double>(0.0);
     scheduler.registerTick((double dTime) -> {
-      angle.val = AngleMath.conformAngle((new Vector2(con.getLeftX(), con.getLeftY())).getAngleDeg());
-      drive.setAngle(angle.val);
-      // drive.setGoVoltage((new Vector2(con.getLeftX(),
-      // con.getLeftY())).getMagnitude());
+      // var goVec = new Vector2(con.getLeftX(), con.getLeftY());
+      // goAngle.val = AngleMath.conformAngle(goVec.getAngleDeg() - 90); // 90 off terminal angle
+      // if (goVec.getMagnitude() > 0.05) {
+      //   drive.setAngle(goAngle.val);
+      //   drive.setGoVoltage(goVec.getMagnitude() * 12);
+      // } else {
+      //   drive.setGoVoltage(0);
+      // }
+      
+      // TODO: figure out why pink ps5 has inverted y axis (inverted below)
+      var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
+      if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
+        drive.power(goVec.getMagnitude(), goVec.getAngleDeg(), con.getRightX() * 5);
+      } else {
+        drive.stopGoPower();
+      }
     });
-
-    scheduler.setInterval(() -> {
-      System.out.println(angle.val);
-    }, 0.8);
   }
 
   /** This function is called periodically during operator control. */

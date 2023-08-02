@@ -41,8 +41,12 @@ public class SwerveModulePD implements Tickable {
         }
     }
 
+    /**
+     * sets the turn target for the module from forward going to the right
+     * @param degrees
+     */
     public void setTurnTarget(double degrees) {
-        turnTarget = degrees;
+        turnTarget = AngleMath.conformAngle(degrees);
     }
 
     boolean frontFacing = true;

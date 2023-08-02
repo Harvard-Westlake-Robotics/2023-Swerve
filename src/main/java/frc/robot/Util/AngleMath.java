@@ -11,11 +11,14 @@ public class AngleMath {
     }
 
     public static double getDelta(double current, double target) {
+        current = conformAngle(current);
+        target = conformAngle(target);
         var diff = (target - current) % 360;
         return minMagnitude(diff, diff - 360);
     }
+    
     /**
-     * conforms an angle to -180, 180 java
+     * Makes the angle between (-180, 180]
      */
     public static double conformAngle(double angle) {
         return (angle + 180) % 360 - 180;

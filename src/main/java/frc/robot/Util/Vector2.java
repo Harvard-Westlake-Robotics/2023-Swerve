@@ -9,7 +9,7 @@ public class Vector2 {
     }
 
     public Vector2(double angle) {
-        var radians = AngleMath.conformAngle(angle) / 160 * (2 * Math.PI);
+        var radians = AngleMath.conformAngle(angle) / 360 * (2 * Math.PI);
         x = Math.cos(radians);
         y = Math.sin(radians);
     }
@@ -31,11 +31,20 @@ public class Vector2 {
         return multiply(new Vector2(other, other));
     }
 
+    /**
+     * Gets the angle in standard position
+     * 
+     * @return the angle in degrees
+     */
     public double getAngleDeg() {
         double angle = Math.atan2(y, x);
         angle = Math.toDegrees(angle);
         angle = (angle + 360) % 360;
         return angle;
+    }
+
+    public double getTurnAngleDeg() {
+        return AngleMath.conformAngle(-1 * (getAngleDeg() - 90));
     }
 
     public Vector2 add(Vector2 other) {
