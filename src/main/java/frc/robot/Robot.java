@@ -12,9 +12,6 @@ import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
-import frc.robot.Util.AngleMath;
-import frc.robot.Util.Container;
-import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Vector2;
 
@@ -35,7 +32,7 @@ public class Robot extends TimedRobot {
   PS4Controller con;
   Joystick joystick;
 
-  DriveTwo drive;
+  Drive drive;
 
   Imu imu;
 
@@ -77,7 +74,7 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
 
-    this.drive = new DriveTwo(leftFront, rightFront, leftBack, rightBack);
+    this.drive = new Drive(leftFront, rightFront, leftBack, rightBack);
   }
 
   @Override

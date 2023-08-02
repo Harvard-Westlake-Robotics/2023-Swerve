@@ -56,4 +56,12 @@ public class SwerveModulePD implements Tickable {
         voltage = volts;
         swerve.setGoVoltage(frontFacing ? volts : -volts);
     }
+
+    public double getAngle() {
+        return coder.absVal();
+    }
+
+    public double getDist() {
+        return swerve.getGoReading();
+    }
 }

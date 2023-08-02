@@ -1,10 +1,9 @@
 package frc.robot.Drive;
 
 import frc.robot.Devices.MotorController;
-import com.ctre.phoenix.sensors.CANCoder;
+import frc.robot.Util.AngleMath;
 
 public class SwerveModule {
-    private CANCoder angle;
     private MotorController turn;
     private MotorController go;
     
@@ -26,7 +25,15 @@ public class SwerveModule {
     }
 
     public double getTurnReading() {
-        return turn.getDegrees() / 12.8;
+        return AngleMath.conformAngle(turn.getDegrees() / 12.8); // 12.8 motor turns per 360 deg wheel turn
+    }
+
+    public void resetGoReading() {
+        go.resetEncoder();
+    }
+
+    public double getGoReading() {
+        return go.getDegrees(); // TODO: figure how many motor turns per wheel gotation; convert to inches
     }
 }
  
