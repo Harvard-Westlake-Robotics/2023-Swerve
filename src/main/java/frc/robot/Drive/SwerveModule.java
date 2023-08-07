@@ -10,6 +10,9 @@ public class SwerveModule {
     public SwerveModule(MotorController turn, MotorController go) {
         this.turn = turn;
         this.go = go;
+
+        turn.resetEncoder();
+        go.resetEncoder();
     }
 
     public void setGoVoltage(double voltage) {

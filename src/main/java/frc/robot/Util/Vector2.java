@@ -52,4 +52,12 @@ public class Vector2 {
                 x + other.x,
                 y + other.y);
     }
+
+    public double dotProduct(Vector2 other) {
+        return x * other.x + y * other.y;
+    }
+
+    public Vector2 rotate(double degrees) {
+        return new Vector2(getAngleDeg() + degrees, getMagnitude());
+    } 
 }

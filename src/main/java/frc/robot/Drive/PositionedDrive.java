@@ -1,5 +1,7 @@
 package frc.robot.Drive;
 
+import frc.robot.Util.Vector2;
+
 public class PositionedDrive extends Drive {
     private double x = 0;
     private double y = 0;
@@ -11,8 +13,8 @@ public class PositionedDrive extends Drive {
     }
 
     public PositionedDrive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
-            SwerveModulePD backRight) {
-        super(frontLeft, frontRight, backLeft, backRight);
+            SwerveModulePD backRight, double widthInches, double lengthInches) {
+        super(frontLeft, frontRight, backLeft, backRight, widthInches, lengthInches);
 
         updateLastWheelPositions();
     }
@@ -26,17 +28,30 @@ public class PositionedDrive extends Drive {
 
     @Override
     public void tick(double dTime) {
-        double frontRightAngle = (frontRight.getAngle() + lastWheelPositions[0][0]) / 2;
-        double frontLeftAngle = (frontLeft.getAngle() + lastWheelPositions[1][0]) / 2;
-        double backLeftAngle = (backLeft.getAngle() + lastWheelPositions[2][0]) / 2;
-        double backRightAngle = (backRight.getAngle() + lastWheelPositions[3][0]) / 2;
-
         double frontRightDist = lastWheelPositions[0][1] - frontRight.getDist();
         double frontLeftDist = lastWheelPositions[1][1] - frontLeft.getDist();
         double backLeftDist = lastWheelPositions[2][1] - backLeft.getDist();
         double backRightDist = lastWheelPositions[3][1] - backRight.getDist();
 
+        double frontRightTurn = getTurnVec(1)
+                .dotProduct(Vector2.fromAngleAndMag(frontRight.getAngle(), frontRightDist));
+        double frontLeftTurn = getTurnVec(2).dotProduct(Vector2.fromAngleAndMag(frontLeft.getAngle(), frontLeftDist));
+        double backLeftTurn = getTurnVec(3).dotProduct(Vector2.fromAngleAndMag(backLeft.getAngle(), backLeftDist));
+        double backRightTurn = getTurnVec(4).dotProduct(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist));
+
+        double turnInches = (frontRightTurn + frontLeftTurn + backLeftTurn + backRightTurn) / 4;
+        double turnDegrees = turnInches / (circumferenceInches) * 360;
+
+        Vector2 driveInches = Vector2.fromAngleAndMag(frontRight.getAngle(), frontRightDist)
+                .add(Vector2.fromAngleAndMag(frontLeft.getAngle(), frontLeftDist))
+                .add(Vector2.fromAngleAndMag(backLeft.getAngle(), backLeftDist))
+                .add(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist))
+                .multiply(0.25).rotate(-1 * (angle + (turnDegrees / 2))); // -1 because angles are in standard form
+                // ^ adds half of the turn to the drive in the tick for avg rotation during the tick
         
+        x += driveInches.x;
+        y += driveInches.y;
+        angle += turnDegrees;
 
         updateLastWheelPositions();
         super.tick(dTime);

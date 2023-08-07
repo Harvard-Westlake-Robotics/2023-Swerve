@@ -11,16 +11,20 @@ public class AngleMath {
     }
 
     public static double getDelta(double current, double target) {
-        current = conformAngle(current);
-        target = conformAngle(target);
-        var diff = (target - current) % 360;
-        return minMagnitude(diff, diff - 360);
+        double diff = target - current;
+        return conformAngle(diff);
     }
     
     /**
      * Makes the angle between (-180, 180]
      */
     public static double conformAngle(double angle) {
-        return (angle + 180) % 360 - 180;
+        angle %= 360;
+        if (angle > 180) {
+            angle -= 360;
+        } else if (angle <= -180) {
+            angle += 360;
+        }
+        return angle;
     }
 }

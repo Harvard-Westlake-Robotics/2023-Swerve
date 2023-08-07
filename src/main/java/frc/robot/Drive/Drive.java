@@ -6,18 +6,26 @@ import frc.robot.Util.Tickable;
 import frc.robot.Util.Vector2;
 
 public class Drive implements Tickable {
-    protected SwerveModulePD frontLeft;
+    public SwerveModulePD frontLeft;
     protected SwerveModulePD frontRight;
     protected SwerveModulePD backLeft;
     protected SwerveModulePD backRight;
+    protected double widthInches;
+    protected double lengthInches;
+    protected double circumferenceInches;
 
     public Drive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
-            SwerveModulePD backRight) {
+            SwerveModulePD backRight, double widthInches, double lengthInches) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
         this.backRight = backRight;
+        this.widthInches = widthInches;
+        this.lengthInches = lengthInches;
+        this.circumferenceInches = 2 * Math.PI * Math.sqrt((widthInches * widthInches + lengthInches * lengthInches) / 2);
     }
+
+
 
     /**
      * Turns and goes the robot with given voltages and directions
@@ -52,7 +60,7 @@ public class Drive implements Tickable {
      * @param quadrant
      * @return
      */
-    private static Vector2 getTurnVec(int quadrant) {
+    protected static Vector2 getTurnVec(int quadrant) {
         var squareSide = 1.0 / Math.sqrt(2);
         return new Vector2(
                 (quadrant == 1 || quadrant == 2) ? squareSide : -squareSide,

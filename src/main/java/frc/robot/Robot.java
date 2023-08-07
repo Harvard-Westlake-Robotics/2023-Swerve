@@ -32,12 +32,9 @@ public class Robot extends TimedRobot {
   PS4Controller con;
   Joystick joystick;
 
-  Drive drive;
+  PositionedDrive drive;
 
   Imu imu;
-
-  // ! If you change the pd constant numbers (anywhere in this code) the related
-  // ! subsystem might oscilate or harm somebody
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -74,7 +71,8 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
 
-    this.drive = new Drive(leftFront, rightFront, leftBack, rightBack);
+    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23); // TODO: figure out actual
+                                                                                          // measurements
   }
 
   @Override
@@ -88,23 +86,27 @@ public class Robot extends TimedRobot {
     scheduler.tick();
   }
 
-
   @Override
   public void teleopInit() {
     scheduler.clear();
 
     scheduler.registerTick(drive);
 
+    scheduler.setInterval(() -> {
+      System.out.println("dist: " + drive.frontLeft.getDist());
+    }, 0.5);
+
     scheduler.registerTick((double dTime) -> {
       // var goVec = new Vector2(con.getLeftX(), con.getLeftY());
-      // goAngle.val = AngleMath.conformAngle(goVec.getAngleDeg() - 90); // 90 off terminal angle
+      // goAngle.val = AngleMath.conformAngle(goVec.getAngleDeg() - 90); // 90 off
+      // terminal angle
       // if (goVec.getMagnitude() > 0.05) {
-      //   drive.setAngle(goAngle.val);
-      //   drive.setGoVoltage(goVec.getMagnitude() * 12);
+      // drive.setAngle(goAngle.val);
+      // drive.setGoVoltage(goVec.getMagnitude() * 12);
       // } else {
-      //   drive.setGoVoltage(0);
+      // drive.setGoVoltage(0);
       // }
-      
+
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
