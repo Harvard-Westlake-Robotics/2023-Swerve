@@ -6,6 +6,15 @@ public class PositionedDrive extends Drive {
     private double x = 0;
     private double y = 0;
     private double angle = 0; // deg
+
+    public double getAngle() {
+        return angle;
+    }
+
+    public Vector2 getPosition() {
+        return new Vector2(x, y);
+    }
+
     private double[][] lastWheelPositions = new double[4][2];
 
     public void reset() {

@@ -2,13 +2,10 @@ package frc.robot.Drive;
 
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Util.AngleMath;
-import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Tickable;
 
 public class SwerveModulePD implements Tickable {
-    int id = (int) (Math.random() * 10);
-    DeSpam deSpam = new DeSpam(0.2);
     SwerveModule swerve;
     PDController controller;
     AbsoluteEncoder coder;
@@ -20,8 +17,6 @@ public class SwerveModulePD implements Tickable {
     }
 
     Double turnTarget = null;
-
-    boolean log = false;
 
     public void tick(double dTime) {
         if (turnTarget != null) {
@@ -37,15 +32,6 @@ public class SwerveModulePD implements Tickable {
             }
 
             var correctionVoltage = controller.solve(error);
-
-            if (Math.abs(correctionVoltage) > 1)
-                log = true;
-
-            if (log) {
-                deSpam.exec(() -> {
-                    System.out.println("id: " + id + " target: " + AngleMath.conformAngle(turnTarget) + " current: " + coder.absVal() + " error: " + error + " correction " + correctionVoltage);
-                });
-            }
 
             swerve.setTurnVoltage(correctionVoltage);
         }

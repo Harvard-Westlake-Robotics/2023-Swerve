@@ -93,20 +93,10 @@ public class Robot extends TimedRobot {
     scheduler.registerTick(drive);
 
     scheduler.setInterval(() -> {
-      System.out.println("dist: " + drive.frontLeft.getDist());
+      System.out.println("angle: " + drive.getAngle());
     }, 0.5);
 
     scheduler.registerTick((double dTime) -> {
-      // var goVec = new Vector2(con.getLeftX(), con.getLeftY());
-      // goAngle.val = AngleMath.conformAngle(goVec.getAngleDeg() - 90); // 90 off
-      // terminal angle
-      // if (goVec.getMagnitude() > 0.05) {
-      // drive.setAngle(goAngle.val);
-      // drive.setGoVoltage(goVec.getMagnitude() * 12);
-      // } else {
-      // drive.setGoVoltage(0);
-      // }
-
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
