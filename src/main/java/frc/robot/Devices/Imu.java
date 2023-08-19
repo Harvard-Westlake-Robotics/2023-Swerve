@@ -16,7 +16,7 @@ public class Imu {
         imu.configEnableCompass(false);
     }
 
-    public double getRotation() {
+    public double getYaw() {
         return imu.getYaw();
     }
 

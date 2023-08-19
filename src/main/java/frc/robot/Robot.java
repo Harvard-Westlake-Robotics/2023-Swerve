@@ -5,6 +5,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.PS4Controller;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Core.Scheduler;
@@ -45,7 +47,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     this.con = new PS4Controller(0);
 
-    var con = new PDController(0.08, 0.0);
+    var con = new PDController(0.18, 0.00, 0, 6);
 
     var leftBackEncoder = new AbsoluteEncoder(21, -82.969, true);
     var leftBackTurn = new SparkMax(7, true);
@@ -71,8 +73,9 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
 
-    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23); // TODO: figure out actual
-                                                                                          // measurements
+    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23);
+    // TODO: figure out actual measurements
+    this.imu = new Imu(18);
   }
 
   @Override
@@ -88,19 +91,26 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    imu.resetYaw();
+    drive.resetPositioning();
+
     scheduler.clear();
 
     scheduler.registerTick(drive);
 
     scheduler.setInterval(() -> {
-      System.out.println("angle: " + drive.getAngle());
-    }, 0.5);
+      System.out.println(((RobotController.getBatteryVoltage() < RobotController.getBrownoutVoltage() ? "BROWNOUT: " : "") + "battery voltage: " +
+          RobotController.getBatteryVoltage()));
+      ;
+      // System.out.println("angle: " + drive.getAngle());
+      // System.out.println(drive.toErrorString());
+    }, 0.05);
 
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
-      if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
-        drive.power(goVec.getMagnitude(), goVec.getAngleDeg(), con.getRightX() * 5);
+      if (goVec.getMagnitude() > 0.03 || Math.abs(con.getRightX()) > 0.03) {
+        drive.power(goVec.getMagnitude() * 12, goVec.getAngleDeg() - imu.getYaw(), con.getRightX() * 7);
       } else {
         drive.stopGoPower();
       }

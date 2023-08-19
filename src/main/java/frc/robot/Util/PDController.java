@@ -4,17 +4,19 @@ public class PDController {
     double P_CONSTANT;
     double D_CONSTANT;
     double deadzone;
+    double max;
 
     double lastError = 0;
 
-    public PDController(double p_CONSTANT, double d_CONSTANT, double deadzone) {
+    public PDController(double p_CONSTANT, double d_CONSTANT, double deadzone, double max) {
         P_CONSTANT = p_CONSTANT;
         D_CONSTANT = d_CONSTANT;
         this.deadzone = deadzone;
+        this.max = max;
     }
 
     public PDController(double p_CONSTANT, double d_CONSTANT) {
-        this(p_CONSTANT, d_CONSTANT, 0);
+        this(p_CONSTANT, d_CONSTANT, 0, 0);
     }
 
     /**
@@ -34,7 +36,7 @@ public class PDController {
 
         lastError = currentError;
 
-        return p_correct + d_correct;
+        return MathPlus.maxMagnitude(p_correct + d_correct, max);
     }
 
     /**
@@ -44,7 +46,7 @@ public class PDController {
      * @return
      */
     public PDController withMagnitude(double fac) {
-        return new PDController(P_CONSTANT * fac, D_CONSTANT * fac, deadzone);
+        return new PDController(P_CONSTANT * fac, D_CONSTANT * fac, deadzone, max);
     }
 
     public void reset() {
