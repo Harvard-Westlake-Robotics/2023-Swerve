@@ -25,16 +25,9 @@ import frc.robot.Util.Vector2;
  * project.
  */
 public class Robot extends TimedRobot {
-  final boolean testing = false;
-
-  Scheduler scheduler = new Scheduler();
 
   PS4Controller con;
-  Joystick joystick;
-
-  PositionedDrive drive;
-
-  Imu imu;
+  
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -44,79 +37,29 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     this.con = new PS4Controller(0);
-
-    var con = new PDController(0.08, 0.0);
-
-    var leftBackEncoder = new AbsoluteEncoder(21, -82.969, true);
-    var leftBackTurn = new SparkMax(7, true);
-    var leftBackGo = new SparkMax(8, false);
-    var leftBackRaw = new SwerveModule(leftBackTurn, leftBackGo);
-    var leftBack = new SwerveModulePD(leftBackRaw, con, leftBackEncoder);
-
-    var rightBackEncoder = new AbsoluteEncoder(23, 45.879, true);
-    var rightBackTurn = new SparkMax(1, true);
-    var rightBackGo = new SparkMax(2, false);
-    var rightBackRaw = new SwerveModule(rightBackTurn, rightBackGo);
-    var rightBack = new SwerveModulePD(rightBackRaw, con, rightBackEncoder);
-
-    var leftFrontEncoder = new AbsoluteEncoder(20, -129.639, true);
-    var leftFrontTurn = new SparkMax(5, true);
-    var leftFrontGo = new SparkMax(6, false);
-    var leftFrontRaw = new SwerveModule(leftFrontTurn, leftFrontGo);
-    var leftFront = new SwerveModulePD(leftFrontRaw, con, leftFrontEncoder);
-
-    var rightFrontEncoder = new AbsoluteEncoder(22, 82.969, true);
-    var rightFrontTurn = new SparkMax(3, true);
-    var rightFrontGo = new SparkMax(4, false);
-    var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
-    var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
-
-    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23); // TODO: figure out actual
-                                                                                          // measurements
   }
 
   @Override
   public void autonomousInit() {
-    scheduler.clear();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    scheduler.tick();
   }
 
   @Override
   public void teleopInit() {
-    scheduler.clear();
-
-    scheduler.registerTick(drive);
-
-    scheduler.setInterval(() -> {
-      System.out.println("angle: " + drive.getAngle());
-    }, 0.5);
-
-    scheduler.registerTick((double dTime) -> {
-      // TODO: figure out why pink ps5 has inverted y axis (inverted below)
-      var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
-      if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
-        drive.power(goVec.getMagnitude(), goVec.getAngleDeg(), con.getRightX() * 5);
-      } else {
-        drive.stopGoPower();
-      }
-    });
   }
 
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    scheduler.tick();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
-    scheduler.clear();
   }
 
   @Override
