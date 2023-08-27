@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.robot.Auto.AutonomousDrive;
+import frc.robot.Auto.Commands.GoStraight;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
@@ -78,6 +80,19 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     scheduler.clear();
+
+    scheduler.registerTick(drive);
+
+    PDController goController = new PDController(0.1, 0.0);
+    PDController turnController = new PDController(0.1, 0.0);
+    var autoDrive = new AutonomousDrive(drive, goController, turnController);
+    autoDrive.reset();
+
+    scheduler.registerTick(autoDrive);
+
+    autoDrive.exec(
+      new GoStraight(10, 1, 0)
+    );
   }
 
   /** This function is called periodically during autonomous. */
@@ -90,10 +105,13 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
+    drive.reset();
+
     scheduler.registerTick(drive);
 
     scheduler.setInterval(() -> {
       System.out.println("angle: " + drive.getAngle());
+      System.out.println("x: " + drive.getPosition().x);
     }, 0.5);
 
     scheduler.registerTick((double dTime) -> {

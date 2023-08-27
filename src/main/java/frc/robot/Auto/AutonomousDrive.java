@@ -1,6 +1,8 @@
 package frc.robot.Auto;
 
 import frc.robot.Drive.PositionedDrive;
+import frc.robot.Util.AngleMath;
+import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Promise;
 import frc.robot.Util.Tickable;
@@ -16,6 +18,10 @@ public class AutonomousDrive implements Tickable {
     double targetAngle;
 
     DriveCommand command = null;
+
+    public Promise exec(DriveCommand command) {
+        return exec(command, false);
+    }
 
     public Promise exec(DriveCommand command, boolean override) {
         var promise = new Promise();
@@ -50,18 +56,30 @@ public class AutonomousDrive implements Tickable {
         turnController.reset();
     }
 
+    DeSpam deSpam = new DeSpam(0.1);
+
     public void tick(double dTime) {
+
         if (command != null) {
             AutonomousTick tick = command.tick(dTime);
             targetX += tick.dX;
             targetY += tick.dY;
             targetAngle += tick.dAngle;
         }
-
         double xCorrect = xController.solve(targetX - drive.getPosition().x);
         double yCorrect = yController.solve(targetY - drive.getPosition().y);
-        double turnCorrect = turnController.solve(targetAngle - drive.getAngle());
-        Vector2 goCorrect = new Vector2(xCorrect, yCorrect);
+
+        double turnCorrect = turnController.solve(AngleMath.getDelta(AngleMath.toTurnAngle(drive.getAngle()), targetAngle));
+
+        Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-AngleMath.toTurnAngle(drive.getAngle()));
+
+        deSpam.exec(() -> {
+            System.out.println("targetx: " + targetX + " current: " + drive.getPosition().x);
+            System.out.println("targety: " + targetY + " current: " + drive.getPosition().y);
+            System.out.println("current drive angle: " + drive.getAngle());
+            System.out.println("goCorrectAngle: " + goCorrect.getAngleDeg());
+        });
+
         drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect);
     }
 }
