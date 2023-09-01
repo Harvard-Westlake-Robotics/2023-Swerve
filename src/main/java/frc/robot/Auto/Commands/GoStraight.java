@@ -19,6 +19,9 @@ public class GoStraight extends DriveCommand {
     public AutonomousTick tick(double dTime) {
         Vector2 tick = Vector2.fromAngleAndMag(direction, speed * dTime);
         traveledDistance += tick.getMagnitude();
+        if (Math.abs(traveledDistance) > Math.abs(targetDistance)) {
+            finish.run();
+        }
         return new AutonomousTick(tick.x, tick.y, 0.0);
     }
 }

@@ -69,18 +69,21 @@ public class AutonomousDrive implements Tickable {
         double xCorrect = xController.solve(targetX - drive.getPosition().x);
         double yCorrect = yController.solve(targetY - drive.getPosition().y);
 
-        double turnCorrect = turnController.solve(AngleMath.getDelta(AngleMath.toTurnAngle(drive.getAngle()), targetAngle));
+        double turnCorrect = turnController
+                .solve(AngleMath.getDelta(AngleMath.toTurnAngle(drive.getAngle()), targetAngle));
 
         Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-AngleMath.toTurnAngle(drive.getAngle()));
 
         deSpam.exec(() -> {
             // print targetx, currentx, targety, currenty, targetangle, currentangle
             System.out.println("targetX: " + targetX + ", currentX: " + drive.getPosition().x);
-            //  + ", targetY: " + targetY
-            //         + ", currentY: " + drive.getPosition().y + ", targetAngle: " + targetAngle + ", currentAngle: "
-            //         + drive.getAngle());
+            //         + ", targetY: " + targetY
+            //         + ", currentY: " + drive.getPosition().y + ", \ntargetAngle: " + targetAngle + ", currentAngle: "
+            //         + AngleMath.toTurnAngle(drive.getAngle()));
+            System.out.println(goCorrect.getTurnAngleDeg());
         });
 
+        // TODO : figure out why subtract 90
         drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect);
     }
 }

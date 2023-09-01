@@ -14,6 +14,7 @@ import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
+import frc.robot.Util.AngleMath;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Vector2;
 
@@ -73,7 +74,14 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
 
-    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23); // TODO: figure out actual
+    this.imu = new Imu(18);
+
+    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23, () -> {
+      // if (this.imu != null)
+      return AngleMath.toStandardPosAngle(this.imu.getRotation());
+      // else 
+
+    }); // TODO: figure out actual
                                                                                           // measurements
   }
 
@@ -112,6 +120,7 @@ public class Robot extends TimedRobot {
     scheduler.setInterval(() -> {
       System.out.println("angle: " + drive.getAngle());
       System.out.println("x: " + drive.getPosition().x);
+      System.out.println("y: " + drive.getPosition().y);
     }, 0.5);
 
     scheduler.registerTick((double dTime) -> {

@@ -1,12 +1,15 @@
 package frc.robot.Drive;
 
+import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
+import frc.robot.Util.Getter;
 import frc.robot.Util.Vector2;
 
 public class PositionedDrive extends Drive {
     private double x = 0;
     private double y = 0;
     private double angle = 90; // deg
+    Getter<Double> getCurrentAngle;
 
     public double getAngle() {
         return angle;
@@ -16,6 +19,7 @@ public class PositionedDrive extends Drive {
         return new Vector2(x, y);
     }
 
+    // 4 motors: {standard position angle, distance inches so far}
     private double[][] lastWheelPositions = new double[4][2];
 
     public void reset() {
@@ -26,8 +30,10 @@ public class PositionedDrive extends Drive {
     }
 
     public PositionedDrive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
-            SwerveModulePD backRight, double widthInches, double lengthInches) {
+            SwerveModulePD backRight, double widthInches, double lengthInches, Getter<Double> getCurrentAngle) {
         super(frontLeft, frontRight, backLeft, backRight, widthInches, lengthInches);
+
+        this.getCurrentAngle = getCurrentAngle;
 
         updateLastWheelPositions();
     }
@@ -63,9 +69,8 @@ public class PositionedDrive extends Drive {
                 .add(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist))
                 .multiply(0.25);
 
-        var driveInches = driveInchesRobot.rotate(-1 * (angle + (turnDegrees / 2))); // -1 because angles are in standard form
-        // ^ adds half of the turn to the drive in the tick
-        // for avg rotation during the tick
+        var driveInches = driveInchesRobot.rotate(-1 * AngleMath.toTurnAngle(-getCurrentAngle.get())); // -1 because angles are in standard form
+
         x += driveInches.x;
         y += driveInches.y;
         angle += turnDegrees;
