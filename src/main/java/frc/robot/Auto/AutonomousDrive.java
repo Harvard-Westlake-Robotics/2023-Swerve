@@ -15,7 +15,7 @@ public class AutonomousDrive implements Tickable {
     PDController turnController;
     double targetX;
     double targetY;
-    double targetAngle;
+    double targetAngle; // turn angle
 
     DriveCommand command = null;
 
@@ -50,7 +50,7 @@ public class AutonomousDrive implements Tickable {
     public void reset() {
         targetX = drive.getPosition().x;
         targetY = drive.getPosition().y;
-        targetAngle = drive.getAngle();
+        targetAngle = AngleMath.toTurnAngle(drive.getAngle());
         xController.reset();
         yController.reset();
         turnController.reset();
@@ -74,10 +74,11 @@ public class AutonomousDrive implements Tickable {
         Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-AngleMath.toTurnAngle(drive.getAngle()));
 
         deSpam.exec(() -> {
-            System.out.println("targetx: " + targetX + " current: " + drive.getPosition().x);
-            System.out.println("targety: " + targetY + " current: " + drive.getPosition().y);
-            System.out.println("current drive angle: " + drive.getAngle());
-            System.out.println("goCorrectAngle: " + goCorrect.getAngleDeg());
+            // print targetx, currentx, targety, currenty, targetangle, currentangle
+            System.out.println("targetX: " + targetX + ", currentX: " + drive.getPosition().x);
+            //  + ", targetY: " + targetY
+            //         + ", currentY: " + drive.getPosition().y + ", targetAngle: " + targetAngle + ", currentAngle: "
+            //         + drive.getAngle());
         });
 
         drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect);

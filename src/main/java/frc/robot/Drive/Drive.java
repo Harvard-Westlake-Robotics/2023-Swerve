@@ -45,9 +45,9 @@ public class Drive implements Tickable {
             var vec = goVec.add(turnVec);
 
             var quadran = quadrant;
-            deSpam.exec(() -> {
-                System.out.println(quadran + " turn: " + vec.getTurnAngleDeg());
-            });
+            // deSpam.exec(() -> {
+            //     System.out.println(quadran + " turn: " + vec.getTurnAngleDeg());
+            // });
 
             module.setTurnTarget(vec.getTurnAngleDeg());
             module.setGoVoltage(vec.getMagnitude());

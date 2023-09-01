@@ -91,7 +91,7 @@ public class Robot extends TimedRobot {
     scheduler.registerTick(autoDrive);
 
     autoDrive.exec(
-      new GoStraight(10, 1, 0)
+      new GoStraight(10, 1.5, 0)
     );
   }
 
