@@ -8,6 +8,10 @@ public class Vector2 {
         return new Vector2(angle).multiply(magnitude);
     }
 
+    public Vector2 withMagnitude(double magnitude) {
+        return Vector2.fromAngleAndMag(getAngleDeg(), magnitude);
+    }
+
     public Vector2(double angle) {
         var radians = AngleMath.conformAngle(angle) / 360 * (2 * Math.PI);
         x = Math.cos(radians);

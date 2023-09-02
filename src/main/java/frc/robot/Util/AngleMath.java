@@ -15,6 +15,23 @@ public class AngleMath {
         return conformAngle(diff);
     }
 
+    public static boolean shouldReverseCorrect(double current, double target) {
+
+        var frontFaceError = AngleMath.getDelta(current, target);
+        var backFaceError = AngleMath.getDelta(current, target - 180);
+        var error = AngleMath.minMagnitude(frontFaceError, backFaceError);
+
+        return error == frontFaceError;
+    }
+
+    public static double getDeltaReversable(double current, double target) {
+        var frontFaceError = AngleMath.getDelta(current, target);
+        var backFaceError = AngleMath.getDelta(current, target - 180);
+        var error = AngleMath.minMagnitude(frontFaceError, backFaceError);
+
+        return error;
+    }
+
     /**
      * Makes the angle between (-180, 180]
      */

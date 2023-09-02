@@ -14,6 +14,15 @@ public class Drive implements Tickable {
     protected double lengthInches;
     protected double circumferenceInches;
 
+    private double alignmentThreshold = 1;
+
+    // how aligned the motors need to be to their ideals before going (0, 1]
+    public void setAlignmentThreshold(double newThreshold) {
+        if (newThreshold <= 0 || newThreshold > 1)
+            throw new Error("Threshold must be in range (0, 1]");
+        this.alignmentThreshold = newThreshold;
+    }
+
     public Drive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
             SwerveModulePD backRight, double widthInches, double lengthInches) {
         this.frontLeft = frontLeft;
@@ -22,10 +31,13 @@ public class Drive implements Tickable {
         this.backRight = backRight;
         this.widthInches = widthInches;
         this.lengthInches = lengthInches;
-        this.circumferenceInches = 2 * Math.PI * Math.sqrt((widthInches * widthInches + lengthInches * lengthInches) / 2);
+        this.circumferenceInches = 2 * Math.PI
+                * Math.sqrt((widthInches * widthInches + lengthInches * lengthInches) / 2);
     }
 
     DeSpam deSpam = new DeSpam(0.3);
+
+    Vector2[] moduleTargets;
 
     /**
      * Turns and goes the robot with given voltages and directions
@@ -36,23 +48,37 @@ public class Drive implements Tickable {
      * @param turnVoltage    Rotational power in volts
      */
     public void power(double goVoltage, double goDirectionDeg, double turnVoltage) {
+        if (Math.abs(goVoltage) > 12)
+            throw new Error("Illegally large voltage - goVoltage");
+        if (Math.abs(turnVoltage) > 12)
+            throw new Error("Illegally large voltage - turnVoltage");
+
         goDirectionDeg = AngleMath.conformAngle(goDirectionDeg);
-        int quadrant = 1;
-        for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
+
+        if (moduleTargets == null)
+            moduleTargets = new Vector2[4];
+
+        for (int quadrant = 1; quadrant <= 4; quadrant++) {
             var turnVec = getTurnVec(quadrant)
                     .multiply(turnVoltage);
             var goVec = Vector2.fromAngleAndMag(goDirectionDeg, goVoltage);
             var vec = goVec.add(turnVec);
 
-            var quadran = quadrant;
-            // deSpam.exec(() -> {
-            //     System.out.println(quadran + " turn: " + vec.getTurnAngleDeg());
-            // });
+            moduleTargets[quadrant - 1] = vec;
+        }
 
-            module.setTurnTarget(vec.getTurnAngleDeg());
-            module.setGoVoltage(vec.getMagnitude());
-
-            quadrant++;
+        // normalizes voltages
+        double largestVoltage = 0;
+        for (Vector2 tar : moduleTargets) {
+            if (Math.abs(tar.getMagnitude()) > 12)
+                largestVoltage = Math.abs(tar.getMagnitude());
+        }
+        if (largestVoltage > 12) {
+            for (int module = 0; module < 4; module++) {
+                final double fac = 12.0 / largestVoltage;
+                final var tar = moduleTargets[module];
+                moduleTargets[module] = tar.withMagnitude(tar.getMagnitude() * fac);
+            }
         }
     }
 
@@ -72,13 +98,47 @@ public class Drive implements Tickable {
                 (quadrant == 2 || quadrant == 3) ? squareSide : -squareSide);
     }
 
+    public void reset() {
+
+    }
+
     public void stopGoPower() {
+        moduleTargets = null;
         for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
             module.setGoVoltage(0);
         }
     }
 
     public void tick(double dTime) {
+        double error = 0;
+        double total = 0;
+        if (moduleTargets != null) {
+            int quadrant = 1;
+            for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
+                final var tar = moduleTargets[quadrant - 1];
+                error += tar.getMagnitude()
+                        * (Math.abs(AngleMath.getDeltaReversable(module.getAngle(), tar.getAngleDeg()))
+                                / 90.0);
+                total += tar.getMagnitude();
+                quadrant++;
+            }
+        }
+
+        int quadrant = 1;
+        for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
+            if (moduleTargets != null) {
+                var vec = moduleTargets[quadrant - 1];
+                if (error / total < 1 - alignmentThreshold) {
+                    module.setGoVoltage(vec.getMagnitude());
+                } else {
+                    module.setGoVoltage(0);
+                }
+                module.setTurnTarget(vec.getTurnAngleDeg());
+            } else {
+                module.setGoVoltage(0);
+            }
+            quadrant++;
+        }
         frontLeft.tick(dTime);
         frontRight.tick(dTime);
         backLeft.tick(dTime);

@@ -3,6 +3,7 @@ package frc.robot.Auto;
 import frc.robot.Drive.PositionedDrive;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
+import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Promise;
 import frc.robot.Util.Tickable;
@@ -37,11 +38,11 @@ public class AutonomousDrive implements Tickable {
         return promise;
     }
 
-    public AutonomousDrive(PositionedDrive drive, PDController goController, PDController turnController) {
+    public AutonomousDrive(PositionedDrive drive, PDConstant goContstants, PDConstant turnConstants) {
         this.drive = drive;
-        this.xController = goController.clone();
-        this.yController = goController.clone();
-        this.turnController = turnController;
+        this.xController = new PDController(goContstants);
+        this.yController = new PDController(goContstants);
+        this.turnController = new PDController(turnConstants);
         this.targetX = drive.getPosition().x;
         this.targetY = drive.getPosition().y;
         this.targetAngle = drive.getAngle();
@@ -83,7 +84,6 @@ public class AutonomousDrive implements Tickable {
             System.out.println(goCorrect.getTurnAngleDeg());
         });
 
-        // TODO : figure out why subtract 90
         drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect);
     }
 }

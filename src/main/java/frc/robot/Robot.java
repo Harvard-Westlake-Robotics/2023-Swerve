@@ -15,7 +15,8 @@ import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
-import frc.robot.Util.PDController;
+import frc.robot.Util.PDConstant;
+import frc.robot.Util.ScaleInput;
 import frc.robot.Util.Vector2;
 
 /**
@@ -48,7 +49,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     this.con = new PS4Controller(0);
 
-    var con = new PDController(0.08, 0.0);
+    var con = new PDConstant(0.14, 0.12).withMagnitude(0.8);
 
     var leftBackEncoder = new AbsoluteEncoder(21, -82.969, true);
     var leftBackTurn = new SparkMax(7, true);
@@ -77,30 +78,27 @@ public class Robot extends TimedRobot {
     this.imu = new Imu(18);
 
     this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23, () -> {
-      // if (this.imu != null)
-      return AngleMath.toStandardPosAngle(this.imu.getRotation());
-      // else 
-
-    }); // TODO: figure out actual
-                                                                                          // measurements
+      return AngleMath.toStandardPosAngle(this.imu.getTurnAngle());
+    }); // TODO: figure out actual measurements
   }
 
   @Override
   public void autonomousInit() {
     scheduler.clear();
 
+    drive.setAlignmentThreshold(0.1);
+
     scheduler.registerTick(drive);
 
-    PDController goController = new PDController(0.1, 0.0);
-    PDController turnController = new PDController(0.1, 0.0);
-    var autoDrive = new AutonomousDrive(drive, goController, turnController);
+    var goPD = new PDConstant(0.1, 0.0);
+    var turnPD = new PDConstant(0.1, 0.0);
+    var autoDrive = new AutonomousDrive(drive, goPD, turnPD);
     autoDrive.reset();
 
     scheduler.registerTick(autoDrive);
 
     autoDrive.exec(
-      new GoStraight(10, 1.5, 0)
-    );
+        new GoStraight(10, 1.5, 0));
   }
 
   /** This function is called periodically during autonomous. */
@@ -114,20 +112,29 @@ public class Robot extends TimedRobot {
     scheduler.clear();
 
     drive.reset();
+    drive.setAlignmentThreshold(0.7);
 
     scheduler.registerTick(drive);
 
-    scheduler.setInterval(() -> {
-      System.out.println("angle: " + drive.getAngle());
-      System.out.println("x: " + drive.getPosition().x);
-      System.out.println("y: " + drive.getPosition().y);
-    }, 0.5);
+    // scheduler.setInterval(() -> {
+    //   System.out.println("angle: " + drive.getAngle());
+    //   System.out.println("x: " + drive.getPosition().x);
+    //   System.out.println("y: " + drive.getPosition().y);
+    // }, 0.5);
 
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
+
+      final var TURN_CURVE_INTENSITY = 11;
+      final var GO_CURVE_INTENSITY = 5;
+
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
-        drive.power(goVec.getMagnitude(), goVec.getAngleDeg(), con.getRightX() * 5);
+        drive.power(
+            ScaleInput.curve(goVec.getMagnitude() * 100, GO_CURVE_INTENSITY) * (12.0 / 100.0),
+            goVec.getAngleDeg() - imu.getTurnAngle(),
+            ScaleInput.curve(con.getRightX() * 100, TURN_CURVE_INTENSITY) * (12.0 / 100.0) //
+        );
       } else {
         drive.stopGoPower();
       }

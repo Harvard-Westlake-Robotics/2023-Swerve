@@ -7,15 +7,13 @@ public class PDController {
 
     double lastError = 0;
 
-    public PDController(double p_CONSTANT, double d_CONSTANT, double deadzone) {
-        P_CONSTANT = p_CONSTANT;
-        D_CONSTANT = d_CONSTANT;
-        this.deadzone = deadzone;
+    public PDController(PDConstant constants) {
+        P_CONSTANT = constants.kP;
+        D_CONSTANT = constants.kD;
+        this.deadzone = constants.deadzone;
     }
 
-    public PDController(double p_CONSTANT, double d_CONSTANT) {
-        this(p_CONSTANT, d_CONSTANT, 0);
-    }
+    boolean isInDeadzone = false;
 
     /**
      * @param currentError the distance to the target from the current value (target
@@ -26,8 +24,10 @@ public class PDController {
         double p_correct = P_CONSTANT * currentError;
         if (Math.abs(p_correct) < deadzone) {
             p_correct = 0;
+            isInDeadzone = true;
         } else {
             p_correct = (p_correct > 0) ? p_correct - deadzone : p_correct + deadzone;
+            isInDeadzone = false;
         }
 
         double d_correct = D_CONSTANT * (currentError - lastError);
@@ -37,21 +37,7 @@ public class PDController {
         return p_correct + d_correct;
     }
 
-    /**
-     * returns a new PD controller with a scaled magnitude
-     * 
-     * @param fac
-     * @return
-     */
-    public PDController withMagnitude(double fac) {
-        return new PDController(P_CONSTANT * fac, D_CONSTANT * fac, deadzone);
-    }
-
     public void reset() {
         lastError = 0;
-    }
-
-    public PDController clone() {
-        return new PDController(P_CONSTANT, D_CONSTANT);
     }
 }

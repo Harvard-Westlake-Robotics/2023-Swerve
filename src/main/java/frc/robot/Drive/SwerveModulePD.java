@@ -2,6 +2,7 @@ package frc.robot.Drive;
 
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Util.AngleMath;
+import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Tickable;
 
@@ -10,9 +11,9 @@ public class SwerveModulePD implements Tickable {
     PDController controller;
     AbsoluteEncoder coder;
 
-    public SwerveModulePD(SwerveModule swerve, PDController con, AbsoluteEncoder coder) {
+    public SwerveModulePD(SwerveModule swerve, PDConstant con, AbsoluteEncoder coder) {
         this.swerve = swerve;
-        this.controller = con;
+        this.controller = new PDController(con);
         this.coder = coder;
     }
 
@@ -20,11 +21,8 @@ public class SwerveModulePD implements Tickable {
 
     public void tick(double dTime) {
         if (turnTarget != null) {
-            var frontFaceError = AngleMath.getDelta(coder.absVal(), turnTarget);
-            var backFaceError = AngleMath.getDelta(coder.absVal(), turnTarget - 180);
-            var error = AngleMath.minMagnitude(frontFaceError, backFaceError);
-
-            boolean isFrontFacing = error == frontFaceError;
+            var error = AngleMath.getDeltaReversable(coder.absVal(), turnTarget);
+            boolean isFrontFacing = AngleMath.shouldReverseCorrect(coder.absVal(), turnTarget);
 
             if (isFrontFacing != this.frontFacing) {
                 this.frontFacing = isFrontFacing;
