@@ -6,9 +6,9 @@ import frc.robot.Util.Vector2;
 
 public class Drive implements Tickable {
     public SwerveModulePD frontLeft;
-    protected SwerveModulePD frontRight;
-    protected SwerveModulePD backLeft;
-    protected SwerveModulePD backRight;
+    public SwerveModulePD frontRight;
+    public SwerveModulePD backLeft;
+    public SwerveModulePD backRight;
     protected double widthInches;
     protected double lengthInches;
     protected double circumferenceInches;
@@ -49,6 +49,8 @@ public class Drive implements Tickable {
             quadrant++;
         }
     }
+
+   
 
     /**
      * Gets the slope of a wheel in a given quadrant to make the robot turn

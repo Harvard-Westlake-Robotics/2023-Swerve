@@ -14,6 +14,7 @@ import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
+import frc.robot.sean.LimelightCamera;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Vector2;
 
@@ -33,7 +34,9 @@ public class Robot extends TimedRobot {
 
   PS4Controller con;
   Joystick joystick;
+  LimelightCamera limelight;
 
+  boolean isWallSnapButtonToggled = true;
   PositionedDrive drive;
 
   Imu imu;
@@ -76,6 +79,8 @@ public class Robot extends TimedRobot {
     this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23);
     // TODO: figure out actual measurements
     this.imu = new Imu(18);
+
+    limelight = new LimelightCamera();
   }
 
   @Override
@@ -98,23 +103,72 @@ public class Robot extends TimedRobot {
 
     scheduler.registerTick(drive);
 
+    // !TODO write method
+
     scheduler.setInterval(() -> {
-      System.out.println(((RobotController.getBatteryVoltage() < RobotController.getBrownoutVoltage() ? "BROWNOUT: " : "") + "battery voltage: " +
-          RobotController.getBatteryVoltage()));
+      // System.out.println(((RobotController.getBatteryVoltage() <
+      // RobotController.getBrownoutVoltage() ? "BROWNOUT: " : "") + "battery voltage:
+      // " +
+      // RobotController.getBatteryVoltage()));
       ;
       // System.out.println("angle: " + drive.getAngle());
       // System.out.println(drive.toErrorString());
-    }, 0.05);
+      double ourDirection = limelight.getFieldRelativeDirection();
+      System.out.println("limelight yaw: " + ourDirection);
+
+    }, 5);
 
     scheduler.registerTick((double dTime) -> {
+
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
+
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
       if (goVec.getMagnitude() > 0.03 || Math.abs(con.getRightX()) > 0.03) {
-        drive.power(goVec.getMagnitude() * 12, goVec.getAngleDeg() - imu.getYaw(), con.getRightX() * 7);
-      } else {
+
+        // Toggles on the snap to wall mode when the L1 button is pressed
+        if (con.getL1Button()) {
+          isWallSnapButtonToggled = true;
+        }
+        // toggles off the snap to wall mode when rotation requested
+        if (con.getRightX() > 0 || con.getRightY() > 0) {
+          isWallSnapButtonToggled = false;
+        }
+      
+        if (isWallSnapButtonToggled) {
+        double direction = limelight.getFieldRelativeDirection();
+        //turning voltage, max 12, positive for clockwise
+        final double MAX_VOLTAGE = 4;
+        double voltage = 0;
+        if (direction > 0 && direction < 90) {
+        voltage = -direction * MAX_VOLTAGE/90;
+        }
+        else if(direction > 90 && direction < 180){
+        voltage = -direction * MAX_VOLTAGE/90;
+        }
+        else if(direction < 0 && direction > -90){
+        voltage = -(180+direction) * MAX_VOLTAGE/90;
+        }
+        else if(direction < -90 && direction > -180){
+        voltage = (180-direction) * MAX_VOLTAGE/90;
+        }
+        else {
+        voltage = 0;
+        }
+        drive.power(goVec.getMagnitude() * 12, goVec.getAngleDeg() - imu.getYaw(), voltage);
+        }
+        else {
+        drive.power(goVec.getMagnitude() * 12, goVec.getAngleDeg() - imu.getYaw(),
+        con.getRightX() * 7);
+        }
+
+        if(!con.getL1Button()){isWallSnapButtonToggled = false;}
+      }
+       
+      else {
         drive.stopGoPower();
       }
     });
+
   }
 
   /** This function is called periodically during operator control. */
