@@ -1,13 +1,11 @@
 package frc.robot.Drive;
 
-import frc.robot.Util.DeSpam;
 import frc.robot.Util.Vector2;
 
 public class PositionedDrive extends Drive {
     private double x = 0;
     private double y = 0;
     private double angle = 0; // deg
-    DeSpam dSpam = new DeSpam(0.5);
 
     public double getAngle() {
         return angle;
@@ -58,20 +56,13 @@ public class PositionedDrive extends Drive {
                 .add(Vector2.fromAngleAndMag(backLeft.getAngle(), backLeftDist))
                 .add(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist))
                 .multiply(0.25).rotate(-1 * (angle + (turnDegrees / 2))); // -1 because angles are in standard form
-        // ^ adds half of the turn to the drive in the tick for avg rotation during the
-        // tick
-
+                // ^ adds half of the turn to the drive in the tick for avg rotation during the tick
+        
         x += driveInches.x;
         y += driveInches.y;
         angle += turnDegrees;
 
         updateLastWheelPositions();
         super.tick(dTime);
-    }
-
-    public void resetPositioning() {
-        x = 0;
-        y = 0;
-        angle = 0;
-    }
+    };
 }

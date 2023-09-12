@@ -1,6 +1,7 @@
 package frc.robot.Drive;
 
 import frc.robot.Util.AngleMath;
+import frc.robot.Util.DeSpam;
 import frc.robot.Util.Tickable;
 import frc.robot.Util.Vector2;
 
@@ -21,7 +22,7 @@ public class Drive implements Tickable {
         this.backRight = backRight;
         this.widthInches = widthInches;
         this.lengthInches = lengthInches;
-        this.circumferenceInches = Math.PI * Math.sqrt(widthInches * widthInches + lengthInches * lengthInches);
+        this.circumferenceInches = 2 * Math.PI * Math.sqrt((widthInches * widthInches + lengthInches * lengthInches) / 2);
     }
 
 
@@ -77,9 +78,5 @@ public class Drive implements Tickable {
         frontRight.tick(dTime);
         backLeft.tick(dTime);
         backRight.tick(dTime);
-    }
-
-    public String toErrorString() {
-        return "fr: " + frontRight.getAvgError() + " fl: " + frontLeft.getAvgError() + "\n bl: " + backLeft.getAvgError() + " br: " + backRight.getAvgError();
     }
 }
