@@ -58,6 +58,10 @@ public class Vector2 {
     }
 
     public Vector2 rotate(double degrees) {
-        return new Vector2(getAngleDeg() + degrees, getMagnitude());
-    } 
+        return Vector2.fromAngleAndMag(getAngleDeg() + degrees, getMagnitude());
+    }
+
+    public String toString() {
+        return "(" + x + ", " + y + ")";
+    }
 }

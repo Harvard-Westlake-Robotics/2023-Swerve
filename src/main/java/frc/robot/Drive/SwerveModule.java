@@ -6,7 +6,7 @@ import frc.robot.Util.AngleMath;
 public class SwerveModule {
     private MotorController turn;
     private MotorController go;
-    
+
     public SwerveModule(MotorController turn, MotorController go) {
         this.turn = turn;
         this.go = go;
@@ -17,7 +17,7 @@ public class SwerveModule {
 
     public void setGoVoltage(double voltage) {
         go.setVoltage(voltage);
-    }   
+    }
 
     public void setTurnVoltage(double voltage) {
         turn.setVoltage(voltage);
@@ -42,7 +42,7 @@ public class SwerveModule {
      * inches
      */
     public double getGoReading() {
-        return go.getDegrees() / 6.75 * (3.82 * Math.PI); // 6.75 rotations of the motor to 1 rotation of the wheel - 3.82 inch diameter
+        return (go.getDegrees() / 360.0) / 6.75 * (3.82 * Math.PI); // 6.75 rotations of the motor to 1 rotation of the
+                                                                    // wheel - 3.82 inch diameter
     }
 }
- 

@@ -1,7 +1,7 @@
 package frc.robot.Util;
 
 public class AngleMath {
-    public static double minMagnitude(double ...nums) {
+    public static double minMagnitude(double... nums) {
         double min = nums[0];
         for (double num : nums) {
             if (Math.abs(num) < Math.abs(min))
@@ -14,7 +14,7 @@ public class AngleMath {
         double diff = target - current;
         return conformAngle(diff);
     }
-    
+
     /**
      * Makes the angle between (-180, 180]
      */
@@ -26,5 +26,17 @@ public class AngleMath {
             angle += 360;
         }
         return angle;
+    }
+
+    /**
+     * converts an angle in standard position to an angle from the front to the
+     * right
+     */
+    public static double toTurnAngle(double standardPositionAngle) {
+        return AngleMath.conformAngle(90 - standardPositionAngle);
+    }
+
+    public static double toStandardPosAngle(double turnAngle) {
+        return toTurnAngle(turnAngle);
     }
 }

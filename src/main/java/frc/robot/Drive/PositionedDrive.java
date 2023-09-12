@@ -1,11 +1,15 @@
 package frc.robot.Drive;
 
+import frc.robot.Util.AngleMath;
+import frc.robot.Util.DeSpam;
+import frc.robot.Util.Getter;
 import frc.robot.Util.Vector2;
 
 public class PositionedDrive extends Drive {
     private double x = 0;
     private double y = 0;
-    private double angle = 0; // deg
+    private double angle = 90; // deg
+    Getter<Double> getCurrentAngle;
 
     public double getAngle() {
         return angle;
@@ -15,15 +19,21 @@ public class PositionedDrive extends Drive {
         return new Vector2(x, y);
     }
 
+    // 4 motors: {standard position angle, distance inches so far}
     private double[][] lastWheelPositions = new double[4][2];
 
     public void reset() {
         updateLastWheelPositions();
+        x = 0;
+        y = 0;
+        angle = 90;
     }
 
     public PositionedDrive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
-            SwerveModulePD backRight, double widthInches, double lengthInches) {
+            SwerveModulePD backRight, double widthInches, double lengthInches, Getter<Double> getCurrentAngle) {
         super(frontLeft, frontRight, backLeft, backRight, widthInches, lengthInches);
+
+        this.getCurrentAngle = getCurrentAngle;
 
         updateLastWheelPositions();
     }
@@ -34,6 +44,8 @@ public class PositionedDrive extends Drive {
         lastWheelPositions[2] = new double[] { backLeft.getAngle(), backLeft.getDist() };
         lastWheelPositions[3] = new double[] { backRight.getAngle(), backRight.getDist() };
     }
+
+    DeSpam dSpam = new DeSpam(0.3);
 
     @Override
     public void tick(double dTime) {
@@ -49,15 +61,16 @@ public class PositionedDrive extends Drive {
         double backRightTurn = getTurnVec(4).dotProduct(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist));
 
         double turnInches = (frontRightTurn + frontLeftTurn + backLeftTurn + backRightTurn) / 4;
-        double turnDegrees = turnInches / (circumferenceInches) * 360;
+        double turnDegrees = turnInches / (circumferenceInches) * 360.0;
 
-        Vector2 driveInches = Vector2.fromAngleAndMag(frontRight.getAngle(), frontRightDist)
+        Vector2 driveInchesRobot = Vector2.fromAngleAndMag(frontRight.getAngle(), frontRightDist)
                 .add(Vector2.fromAngleAndMag(frontLeft.getAngle(), frontLeftDist))
                 .add(Vector2.fromAngleAndMag(backLeft.getAngle(), backLeftDist))
                 .add(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist))
-                .multiply(0.25).rotate(-1 * (angle + (turnDegrees / 2))); // -1 because angles are in standard form
-                // ^ adds half of the turn to the drive in the tick for avg rotation during the tick
-        
+                .multiply(0.25);
+
+        var driveInches = driveInchesRobot.rotate(-1 * AngleMath.toTurnAngle(-getCurrentAngle.get())); // -1 because angles are in standard form
+
         x += driveInches.x;
         y += driveInches.y;
         angle += turnDegrees;

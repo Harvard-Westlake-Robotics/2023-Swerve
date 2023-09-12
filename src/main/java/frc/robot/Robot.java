@@ -7,11 +7,14 @@ package frc.robot;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.robot.Auto.AutonomousDrive;
+import frc.robot.Auto.Commands.GoStraight;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
+import frc.robot.Util.AngleMath;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Vector2;
 
@@ -71,13 +74,33 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
 
-    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23); // TODO: figure out actual
+    this.imu = new Imu(18);
+
+    this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23, () -> {
+      // if (this.imu != null)
+      return AngleMath.toStandardPosAngle(this.imu.getRotation());
+      // else 
+
+    }); // TODO: figure out actual
                                                                                           // measurements
   }
 
   @Override
   public void autonomousInit() {
     scheduler.clear();
+
+    scheduler.registerTick(drive);
+
+    PDController goController = new PDController(0.1, 0.0);
+    PDController turnController = new PDController(0.1, 0.0);
+    var autoDrive = new AutonomousDrive(drive, goController, turnController);
+    autoDrive.reset();
+
+    scheduler.registerTick(autoDrive);
+
+    autoDrive.exec(
+      new GoStraight(10, 1.5, 0)
+    );
   }
 
   /** This function is called periodically during autonomous. */
@@ -90,10 +113,14 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
+    drive.reset();
+
     scheduler.registerTick(drive);
 
     scheduler.setInterval(() -> {
       System.out.println("angle: " + drive.getAngle());
+      System.out.println("x: " + drive.getPosition().x);
+      System.out.println("y: " + drive.getPosition().y);
     }, 0.5);
 
     scheduler.registerTick((double dTime) -> {

@@ -65,7 +65,7 @@ public class SwerveModulePD implements Tickable {
      * Gets the angle of the module in standard position
      */
     public double getAngle() {
-        return AngleMath.conformAngle(-(getTurnAngle() - 90));
+        return AngleMath.toStandardPosAngle(getTurnAngle());
     }
 
     public double getDist() {

@@ -25,7 +25,7 @@ public class Drive implements Tickable {
         this.circumferenceInches = 2 * Math.PI * Math.sqrt((widthInches * widthInches + lengthInches * lengthInches) / 2);
     }
 
-
+    DeSpam deSpam = new DeSpam(0.3);
 
     /**
      * Turns and goes the robot with given voltages and directions
@@ -43,6 +43,11 @@ public class Drive implements Tickable {
                     .multiply(turnVoltage);
             var goVec = Vector2.fromAngleAndMag(goDirectionDeg, goVoltage);
             var vec = goVec.add(turnVec);
+
+            var quadran = quadrant;
+            // deSpam.exec(() -> {
+            //     System.out.println(quadran + " turn: " + vec.getTurnAngleDeg());
+            // });
 
             module.setTurnTarget(vec.getTurnAngleDeg());
             module.setGoVoltage(vec.getMagnitude());
