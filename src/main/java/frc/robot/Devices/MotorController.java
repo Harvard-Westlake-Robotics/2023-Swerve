@@ -6,6 +6,8 @@ public abstract class MotorController {
     Double maxSlew;
     boolean isReversed;
 
+    public abstract int getID();
+
     public MotorController(boolean isReversed, double maxSlew) {
         super();
 

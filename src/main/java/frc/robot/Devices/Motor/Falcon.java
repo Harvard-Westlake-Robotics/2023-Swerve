@@ -10,8 +10,15 @@ public class Falcon extends MotorController {
     private WPI_TalonFX falcon;
     double stallVolt;
 
+    final int id;
+    public int getID() {
+        return id;
+    }
+
     public Falcon(int deviceNumber, boolean isReversed, boolean isStallable) {
         super(isReversed);
+
+        this.id = deviceNumber;
 
         this.falcon = new WPI_TalonFX(deviceNumber);
         falcon.getSensorCollection();

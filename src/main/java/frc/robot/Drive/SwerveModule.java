@@ -1,18 +1,24 @@
 package frc.robot.Drive;
 
-import frc.robot.Devices.MotorController;
+import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Util.AngleMath;
 
 public class SwerveModule {
-    private MotorController turn;
-    private MotorController go;
+    private SparkMax turn;
+    private SparkMax go;
 
-    public SwerveModule(MotorController turn, MotorController go) {
+    public SwerveModule(SparkMax turn, SparkMax go) {
         this.turn = turn;
         this.go = go;
 
+        turn.setBrake(true);
+
         turn.resetEncoder();
         go.resetEncoder();
+    }
+
+    public void setGoBrake(boolean brake) {
+        this.go.setBrake(brake);
     }
 
     public void setGoVoltage(double voltage) {

@@ -16,6 +16,7 @@ import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.PDConstant;
+import frc.robot.Util.Promise;
 import frc.robot.Util.ScaleInput;
 import frc.robot.Util.Vector2;
 
@@ -49,31 +50,31 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     this.con = new PS4Controller(0);
 
-    var con = new PDConstant(0.14, 0.12).withMagnitude(0.8);
+    var placeholderConstant = new PDConstant(0, 0);
 
     var leftBackEncoder = new AbsoluteEncoder(21, -82.969, true);
     var leftBackTurn = new SparkMax(7, true);
     var leftBackGo = new SparkMax(8, false);
     var leftBackRaw = new SwerveModule(leftBackTurn, leftBackGo);
-    var leftBack = new SwerveModulePD(leftBackRaw, con, leftBackEncoder);
+    var leftBack = new SwerveModulePD(leftBackRaw, placeholderConstant, leftBackEncoder);
 
     var rightBackEncoder = new AbsoluteEncoder(23, 45.879, true);
     var rightBackTurn = new SparkMax(1, true);
     var rightBackGo = new SparkMax(2, false);
     var rightBackRaw = new SwerveModule(rightBackTurn, rightBackGo);
-    var rightBack = new SwerveModulePD(rightBackRaw, con, rightBackEncoder);
+    var rightBack = new SwerveModulePD(rightBackRaw, placeholderConstant, rightBackEncoder);
 
     var leftFrontEncoder = new AbsoluteEncoder(20, -129.639, true);
     var leftFrontTurn = new SparkMax(5, true);
     var leftFrontGo = new SparkMax(6, false);
     var leftFrontRaw = new SwerveModule(leftFrontTurn, leftFrontGo);
-    var leftFront = new SwerveModulePD(leftFrontRaw, con, leftFrontEncoder);
+    var leftFront = new SwerveModulePD(leftFrontRaw, placeholderConstant, leftFrontEncoder);
 
     var rightFrontEncoder = new AbsoluteEncoder(22, 82.969, true);
     var rightFrontTurn = new SparkMax(3, true);
     var rightFrontGo = new SparkMax(4, false);
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
-    var rightFront = new SwerveModulePD(rightFrontRaw, con, rightFrontEncoder);
+    var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
     this.imu = new Imu(18);
 
@@ -86,19 +87,35 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     scheduler.clear();
 
-    drive.setAlignmentThreshold(0.1);
+    drive.reset();
+    drive.setAlignmentThreshold(0.15);
+    drive.setGoBrake(true);
+    
+    var con = new PDConstant(0.1, 0.07);
+    drive.setConstants(con);
 
     scheduler.registerTick(drive);
 
-    var goPD = new PDConstant(0.1, 0.0);
-    var turnPD = new PDConstant(0.1, 0.0);
+    var goPD = new PDConstant(1, 4, 0.2).withMagnitude(0.3);
+    var turnPD = new PDConstant(0.5, 0.0, 1).withMagnitude(0.3);
     var autoDrive = new AutonomousDrive(drive, goPD, turnPD);
     autoDrive.reset();
 
     scheduler.registerTick(autoDrive);
 
-    autoDrive.exec(
-        new GoStraight(10, 1.5, 0));
+    Promise.immediate().then(() -> {
+      return autoDrive.exec(
+          new GoStraight(50, 20, 0));
+    }).then(() -> {
+      return autoDrive.exec(
+          new GoStraight(50, 20, 90));
+    }).then(() -> {
+      return autoDrive.exec(
+          new GoStraight(50, 20, 180));
+    }).then(() -> {
+      return autoDrive.exec(
+          new GoStraight(50, 20, 270));
+    });
   }
 
   /** This function is called periodically during autonomous. */
@@ -111,15 +128,20 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
+    var constants = new PDConstant(0.14, 0.12).withMagnitude(0.8);
+    drive.setConstants(constants);
+
     drive.reset();
+
     drive.setAlignmentThreshold(0.7);
+    drive.setGoBrake(true);
 
     scheduler.registerTick(drive);
 
     // scheduler.setInterval(() -> {
-    //   System.out.println("angle: " + drive.getAngle());
-    //   System.out.println("x: " + drive.getPosition().x);
-    //   System.out.println("y: " + drive.getPosition().y);
+    // System.out.println("angle: " + drive.getAngle());
+    // System.out.println("x: " + drive.getPosition().x);
+    // System.out.println("y: " + drive.getPosition().y);
     // }, 0.5);
 
     scheduler.registerTick((double dTime) -> {
@@ -129,11 +151,18 @@ public class Robot extends TimedRobot {
       final var TURN_CURVE_INTENSITY = 11;
       final var GO_CURVE_INTENSITY = 5;
 
+      var goVoltage = ScaleInput.curve(goVec.getMagnitude() * 100, GO_CURVE_INTENSITY) * (12.0 / 100.0);
+      final var turnVoltage = ScaleInput.curve(con.getRightX() * 100, TURN_CURVE_INTENSITY) * (12.0 / 100.0);
+
+      if (goVoltage > 12) {
+        goVoltage = 12 * (goVoltage / Math.abs(goVoltage));
+      }
+
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
         drive.power(
-            ScaleInput.curve(goVec.getMagnitude() * 100, GO_CURVE_INTENSITY) * (12.0 / 100.0),
+            goVoltage,
             goVec.getAngleDeg() - imu.getTurnAngle(),
-            ScaleInput.curve(con.getRightX() * 100, TURN_CURVE_INTENSITY) * (12.0 / 100.0) //
+            turnVoltage //
         );
       } else {
         drive.stopGoPower();

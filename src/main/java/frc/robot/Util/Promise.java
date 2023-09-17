@@ -3,8 +3,17 @@ package frc.robot.Util;
 import java.util.ArrayList;
 
 public class Promise {
-    boolean resolved = false;
+    private boolean resolved = false;
+    public boolean isResolved() {
+        return resolved;
+    }
     ArrayList<Lambda> thens = new ArrayList<Lambda>();
+
+    public static Promise immediate() {
+        final var prom = new Promise();
+        prom.resolve();
+        return prom;
+    }
 
     public void then(Lambda then) {
         if (resolved)

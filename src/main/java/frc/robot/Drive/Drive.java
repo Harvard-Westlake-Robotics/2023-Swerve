@@ -2,6 +2,7 @@ package frc.robot.Drive;
 
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
+import frc.robot.Util.PDConstant;
 import frc.robot.Util.Tickable;
 import frc.robot.Util.Vector2;
 
@@ -13,6 +14,8 @@ public class Drive implements Tickable {
     protected double widthInches;
     protected double lengthInches;
     protected double circumferenceInches;
+
+    private DeSpam turnErrors = new DeSpam(0.2);
 
     private double alignmentThreshold = 1;
 
@@ -47,11 +50,13 @@ public class Drive implements Tickable {
      *                       POSITION
      * @param turnVoltage    Rotational power in volts
      */
-    public void power(double goVoltage, double goDirectionDeg, double turnVoltage) {
-        if (Math.abs(goVoltage) > 12)
-            throw new Error("Illegally large voltage - goVoltage");
-        if (Math.abs(turnVoltage) > 12)
-            throw new Error("Illegally large voltage - turnVoltage");
+    public void power(double goVoltage, double goDirectionDeg, double turnVoltage, boolean errorOnLargeVoltage) {
+        if (errorOnLargeVoltage) {
+            if (Math.abs(goVoltage) > 12)
+                throw new Error("Illegally large voltage - goVoltage");
+            if (Math.abs(turnVoltage) > 12)
+                throw new Error("Illegally large voltage - turnVoltage");
+        }
 
         goDirectionDeg = AngleMath.conformAngle(goDirectionDeg);
 
@@ -80,6 +85,24 @@ public class Drive implements Tickable {
                 moduleTargets[module] = tar.withMagnitude(tar.getMagnitude() * fac);
             }
         }
+    }
+
+    public void power(double goVoltage, double goDirectionDeg, double turnVoltage) {
+        this.power(goVoltage, goDirectionDeg, turnVoltage, true);
+    }
+
+    public void setConstants(PDConstant constant) {
+        frontLeft.setConstants(constant);
+        frontRight.setConstants(constant);
+        backLeft.setConstants(constant);
+        backRight.setConstants(constant);
+    }
+
+    public void setGoBrake(boolean brake) {
+        frontLeft.setGoBrake(brake);
+        frontRight.setGoBrake(brake);
+        backLeft.setGoBrake(brake);
+        backRight.setGoBrake(brake);
     }
 
     /**
@@ -123,6 +146,10 @@ public class Drive implements Tickable {
                 quadrant++;
             }
         }
+
+        turnErrors.exec(() -> {
+            System.out.println(frontLeft.error + ", " + frontRight.error + ", " + backLeft.error + ", " + backRight.error);
+        });
 
         int quadrant = 1;
         for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {

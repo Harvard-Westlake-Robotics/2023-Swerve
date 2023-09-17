@@ -11,6 +11,16 @@ public class SwerveModulePD implements Tickable {
     PDController controller;
     AbsoluteEncoder coder;
 
+    public double error;
+
+    void setGoBrake(boolean brake) {
+        swerve.setGoBrake(brake);
+    }
+
+    void setConstants(PDConstant constant) {
+        controller = new PDController(constant);
+    }
+
     public SwerveModulePD(SwerveModule swerve, PDConstant con, AbsoluteEncoder coder) {
         this.swerve = swerve;
         this.controller = new PDController(con);
@@ -22,6 +32,7 @@ public class SwerveModulePD implements Tickable {
     public void tick(double dTime) {
         if (turnTarget != null) {
             var error = AngleMath.getDeltaReversable(coder.absVal(), turnTarget);
+            this.error = error;
             boolean isFrontFacing = AngleMath.shouldReverseCorrect(coder.absVal(), turnTarget);
 
             if (isFrontFacing != this.frontFacing) {

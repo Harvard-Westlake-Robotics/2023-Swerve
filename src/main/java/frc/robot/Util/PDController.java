@@ -13,7 +13,7 @@ public class PDController {
         this.deadzone = constants.deadzone;
     }
 
-    boolean isInDeadzone = false;
+    public boolean isInDeadzone = false;
 
     /**
      * @param currentError the distance to the target from the current value (target

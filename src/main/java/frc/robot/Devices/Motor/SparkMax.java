@@ -11,8 +11,15 @@ public class SparkMax extends MotorController {
     private CANSparkMax maxspark;
     private RelativeEncoder encoder;
 
+    final int id;
+    public int getID() {
+        return id;
+    }
+
     public SparkMax(int canID, boolean isReversed) {
         super(isReversed);
+
+        id = canID;
 
         this.maxspark = new CANSparkMax(canID, MotorType.kBrushless);
         this.maxspark.restoreFactoryDefaults();

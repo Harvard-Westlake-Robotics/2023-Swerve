@@ -78,12 +78,15 @@ public class AutonomousDrive implements Tickable {
         deSpam.exec(() -> {
             // print targetx, currentx, targety, currenty, targetangle, currentangle
             System.out.println("targetX: " + targetX + ", currentX: " + drive.getPosition().x);
-            //         + ", targetY: " + targetY
-            //         + ", currentY: " + drive.getPosition().y + ", \ntargetAngle: " + targetAngle + ", currentAngle: "
-            //         + AngleMath.toTurnAngle(drive.getAngle()));
+            // + ", targetY: " + targetY
+            // + ", currentY: " + drive.getPosition().y + ", \ntargetAngle: " + targetAngle
+            // + ", currentAngle: "
+            // + AngleMath.toTurnAngle(drive.getAngle()));
             System.out.println(goCorrect.getTurnAngleDeg());
         });
-
-        drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect);
+        if (!turnController.isInDeadzone || !xController.isInDeadzone || turnController.isInDeadzone)
+            drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect, false);
+        else
+            drive.stopGoPower();
     }
 }
