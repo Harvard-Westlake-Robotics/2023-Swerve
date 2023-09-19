@@ -13,11 +13,11 @@ public class SwerveModulePD implements Tickable {
 
     public double error;
 
-    void setGoBrake(boolean brake) {
+    public void setGoBrake(boolean brake) {
         swerve.setGoBrake(brake);
     }
 
-    void setConstants(PDConstant constant) {
+    public void setConstants(PDConstant constant) {
         controller = new PDController(constant);
     }
 

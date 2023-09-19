@@ -90,7 +90,7 @@ public class Robot extends TimedRobot {
     drive.reset();
     drive.setAlignmentThreshold(0.15);
     drive.setGoBrake(true);
-    
+
     var con = new PDConstant(0.1, 0.07);
     drive.setConstants(con);
 
@@ -137,12 +137,6 @@ public class Robot extends TimedRobot {
     drive.setGoBrake(true);
 
     scheduler.registerTick(drive);
-
-    // scheduler.setInterval(() -> {
-    // System.out.println("angle: " + drive.getAngle());
-    // System.out.println("x: " + drive.getPosition().x);
-    // System.out.println("y: " + drive.getPosition().y);
-    // }, 0.5);
 
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)

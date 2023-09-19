@@ -148,7 +148,8 @@ public class Drive implements Tickable {
         }
 
         turnErrors.exec(() -> {
-            System.out.println(frontLeft.error + ", " + frontRight.error + ", " + backLeft.error + ", " + backRight.error);
+            System.out.println(
+                    frontLeft.error + ", " + frontRight.error + ", " + backLeft.error + ", " + backRight.error);
         });
 
         int quadrant = 1;

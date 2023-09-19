@@ -11,7 +11,7 @@ public class SwerveModule {
         this.turn = turn;
         this.go = go;
 
-        turn.setBrake(true);
+        turn.setBrake(false); // TODO: undoo
 
         turn.resetEncoder();
         go.resetEncoder();
@@ -33,11 +33,15 @@ public class SwerveModule {
         turn.resetEncoder();
     }
 
+    public double getUnconformedTurnReading() {
+        return turn.getDegrees() / 12.8;
+    }
+
     /**
      * Degrees (turn)
      */
     public double getTurnReading() {
-        return AngleMath.conformAngle(turn.getDegrees() / 12.8); // 12.8 motor turns per 360 deg wheel turn
+        return AngleMath.conformAngle(getUnconformedTurnReading()); // 12.8 motor turns per 360 deg wheel turn
     }
 
     public void resetGoReading() {
@@ -48,7 +52,9 @@ public class SwerveModule {
      * inches
      */
     public double getGoReading() {
-        return (go.getDegrees() / 360.0) / 6.75 * (3.82 * Math.PI); // 6.75 rotations of the motor to 1 rotation of the
-                                                                    // wheel - 3.82 inch diameter
+        final double turnCompensation = 3.75 * (getUnconformedTurnReading() / 180.0);
+        return turnCompensation + (go.getDegrees() / 360.0) / 6.75 * (3.82 * Math.PI); // 6.75 rotations of the motor to
+                                                                                       // 1 rotation of the
+        // wheel - 3.82 inch diameter
     }
 }
