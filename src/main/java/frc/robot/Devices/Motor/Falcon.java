@@ -21,6 +21,7 @@ public class Falcon extends MotorController {
         this.id = deviceNumber;
 
         this.falcon = new WPI_TalonFX(deviceNumber);
+        falcon.setInverted(false);
         falcon.getSensorCollection();
         this.stallVolt = isStallable ? 3
                 : 1;
@@ -38,7 +39,7 @@ public class Falcon extends MotorController {
     public Falcon(int deviceNumber, boolean isReversed) {
         this(deviceNumber, isReversed, false);
     }
-
+    
     protected void uSetVoltage(double volts) {
         
         double fac = (volts > 0) ? 1 : -1;

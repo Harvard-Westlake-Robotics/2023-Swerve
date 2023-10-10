@@ -1,24 +1,18 @@
 package frc.robot.Drive;
 
-import frc.robot.Devices.Motor.SparkMax;
+import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Util.AngleMath;
 
 public class SwerveModule {
-    private SparkMax turn;
-    private SparkMax go;
+    private Falcon turn;
+    private Falcon go;
 
-    public SwerveModule(SparkMax turn, SparkMax go) {
+    public SwerveModule(Falcon turn, Falcon go) {
         this.turn = turn;
         this.go = go;
 
-        turn.setBrake(false); // TODO: undoo
-
         turn.resetEncoder();
         go.resetEncoder();
-    }
-
-    public void setGoBrake(boolean brake) {
-        this.go.setBrake(brake);
     }
 
     public void setGoVoltage(double voltage) {

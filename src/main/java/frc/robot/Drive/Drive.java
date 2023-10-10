@@ -90,19 +90,18 @@ public class Drive implements Tickable {
     public void power(double goVoltage, double goDirectionDeg, double turnVoltage) {
         this.power(goVoltage, goDirectionDeg, turnVoltage, true);
     }
-
+    public void tester (double goDirectionDeg) {
+        System.out.println("Front Left: " + frontLeft.getAngle());
+        System.out.println("Front Right: " + frontRight.getAngle());
+        System.out.println("Back Left: " + backLeft.getAngle());
+        System.out.println("Back Right: " + backRight.getAngle());
+        
+    }
     public void setConstants(PDConstant constant) {
         frontLeft.setConstants(constant);
         frontRight.setConstants(constant);
         backLeft.setConstants(constant);
         backRight.setConstants(constant);
-    }
-
-    public void setGoBrake(boolean brake) {
-        frontLeft.setGoBrake(brake);
-        frontRight.setGoBrake(brake);
-        backLeft.setGoBrake(brake);
-        backRight.setGoBrake(brake);
     }
 
     /**

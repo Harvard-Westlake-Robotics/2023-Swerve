@@ -13,10 +13,6 @@ public class SwerveModulePD implements Tickable {
 
     public double error;
 
-    public void setGoBrake(boolean brake) {
-        swerve.setGoBrake(brake);
-    }
-
     public void setConstants(PDConstant constant) {
         controller = new PDController(constant);
     }
@@ -31,14 +27,18 @@ public class SwerveModulePD implements Tickable {
 
     public void tick(double dTime) {
         if (turnTarget != null) {
-            var error = AngleMath.getDeltaReversable(coder.absVal(), turnTarget);
-            this.error = error;
-            boolean isFrontFacing = AngleMath.shouldReverseCorrect(coder.absVal(), turnTarget);
+            // var error = AngleMath.getDeltaReversable(coder.absVal(), turnTarget);
+            // this.error = error;
+            // boolean isFrontFacing = AngleMath.shouldReverseCorrect(coder.absVal(), turnTarget);
 
-            if (isFrontFacing != this.frontFacing) {
-                this.frontFacing = isFrontFacing;
-                swerve.setGoVoltage(frontFacing ? voltage : -voltage);
-            }
+            // if (isFrontFacing != this.frontFacing) {
+            //     this.frontFacing = isFrontFacing;
+            //     swerve.setGoVoltage(frontFacing ? voltage : -voltage);
+            // }
+            var error = AngleMath.getDelta(coder.absVal(), turnTarget);
+            frontFacing = true;
+            swerve.setGoVoltage(voltage);
+            //
 
             var correctionVoltage = controller.solve(error);
 

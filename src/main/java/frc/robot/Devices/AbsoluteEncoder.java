@@ -25,6 +25,11 @@ public class AbsoluteEncoder {
         this(canPort, 0, isReversed);
     }
 
+    public AbsoluteEncoder offset(double offset) {
+        zeroReading = AngleMath.conformAngle(zeroReading - offset);
+        return this;
+    }
+
     public AbsoluteEncoder(int canPort, double zeroReading, boolean isReversed) {
         this.coder = new CANCoder(canPort);
         coder.configFactoryDefault();
