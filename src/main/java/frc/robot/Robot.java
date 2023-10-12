@@ -131,13 +131,13 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
-    var constants = new PDConstant(0.14, 0.12).withMagnitude(0.8);
+    var constants = new PDConstant(0.14, 0.19).withMagnitude(1);
     drive.setConstants(constants);
 
     drive.reset();
 
     drive.setAlignmentThreshold(0.7);
-
+    
     scheduler.registerTick(drive);
 
     scheduler.registerTick((double dTime) -> {
@@ -155,12 +155,12 @@ public class Robot extends TimedRobot {
       }
 
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
-        System.out.println("Govec:" + goVec + "ConX:" + con.getRightX());
         drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(),turnVoltage);
       } else {
         drive.stopGoPower();
       }
     });
+    
   }
 
   /** This function is called periodically during operator control. */
