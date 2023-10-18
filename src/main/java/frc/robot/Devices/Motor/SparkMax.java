@@ -58,8 +58,4 @@ public class SparkMax extends MotorController {
     public void stop() {
         maxspark.stopMotor();
     }
-
-    public void resetEncoder() {
-        encoder.setPosition(0);
-    }
 }

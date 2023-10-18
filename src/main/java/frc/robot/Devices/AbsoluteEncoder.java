@@ -1,12 +1,14 @@
 package frc.robot.Devices;
 
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
-import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenixpro.configs.CANcoderConfiguration;
+import com.ctre.phoenixpro.hardware.CANcoder;
+import com.ctre.phoenixpro.signals.AbsoluteSensorRangeValue;
 
 import frc.robot.Util.AngleMath;
 
 public class AbsoluteEncoder {
-    CANCoder coder;
+    CANcoder coder;
     double zeroReading;
     boolean reversed = false;
 
@@ -31,17 +33,19 @@ public class AbsoluteEncoder {
     }
 
     public AbsoluteEncoder(int canPort, double zeroReading, boolean isReversed) {
-        this.coder = new CANCoder(canPort);
-        coder.configFactoryDefault();
-        coder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
         this.reversed = isReversed;
         this.zeroReading = zeroReading;
+        
+        this.coder = new CANcoder(canPort);
+        var configs = new CANcoderConfiguration();
+        configs.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+        coder.getConfigurator().apply(configs);
     }
 
     /**
      * Degrees, -180 to 180
      */
     public double absVal() {
-        return AngleMath.conformAngle(reverse(coder.getAbsolutePosition() - zeroReading));
+        return AngleMath.conformAngle(reverse(coder.getAbsolutePosition().getValue() * 360.0 - zeroReading));
     }
 }

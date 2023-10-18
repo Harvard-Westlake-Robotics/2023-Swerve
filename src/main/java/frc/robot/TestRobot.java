@@ -1,9 +1,5 @@
 package frc.robot;
 
-import javax.net.ssl.TrustManager;
-
-import com.ctre.phoenix.sensors.CANCoder;
-
 import frc.robot.Core.BetterRobot.BetterRobot;
 import frc.robot.Core.BetterRobot.RobotPolicy;
 import frc.robot.Devices.AbsoluteEncoder;

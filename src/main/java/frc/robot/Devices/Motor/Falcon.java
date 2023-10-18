@@ -1,16 +1,15 @@
 package frc.robot.Devices.Motor;
 
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenixpro.hardware.TalonFX;
 
 import frc.robot.Devices.MotorController;
 
 public class Falcon extends MotorController {
-    private WPI_TalonFX falcon;
+    private TalonFX falcon;
     double stallVolt;
 
     final int id;
+
     public int getID() {
         return id;
     }
@@ -20,28 +19,29 @@ public class Falcon extends MotorController {
 
         this.id = deviceNumber;
 
-        this.falcon = new WPI_TalonFX(deviceNumber);
+        this.falcon = new TalonFX(deviceNumber);
         falcon.setInverted(false);
-        falcon.getSensorCollection();
         this.stallVolt = isStallable ? 3
-                : 1;
+                : 0;
 
-        /* newer config API */
-        TalonFXConfiguration configs = new TalonFXConfiguration();
-        /* select integ-sensor for PID0 (it doesn't matter if PID is actually used) */
-        configs.primaryPID.selectedFeedbackSensor = FeedbackDevice.IntegratedSensor;
-        /* config all the settings */
-        falcon.configAllSettings(configs);
+        // falcon.getSensorCollection();
+        // /* newer config API */
+        // TalonFXConfiguration configs = new TalonFXConfiguration();
+        // /* select integ-sensor for PID0 (it doesn't matter if PID is actually used)
+        // */
+        // configs.primaryPID.selectedFeedbackSensor = FeedbackDevice.IntegratedSensor;
+        // /* config all the settings */
+        // falcon.configAllSettings(configs);
 
-        falcon.setSelectedSensorPosition(0);
+        // falcon.setSelectedSensorPosition(0);
     }
 
     public Falcon(int deviceNumber, boolean isReversed) {
         this(deviceNumber, isReversed, false);
     }
-    
+
     protected void uSetVoltage(double volts) {
-        
+
         double fac = (volts > 0) ? 1 : -1;
         if (Math.abs(volts) < stallVolt / 2) {
             falcon.setVoltage(0);
@@ -68,14 +68,10 @@ public class Falcon extends MotorController {
     }
 
     protected double uGetRevs() {
-        return falcon.getSelectedSensorPosition(0) / 2048.0;
+        return falcon.getPosition().getValue();
     }
 
     public void stop() {
         falcon.stopMotor();
-    }
-
-    public void resetEncoder() {
-        falcon.setSelectedSensorPosition(0);
     }
 }

@@ -26,8 +26,15 @@ public abstract class MotorController {
 
     protected abstract double uGetRevs();
     
+    double resetPos = 0;
+
+    public void resetEncoder() {
+        resetPos = uGetRevs();
+    };
+
     public double getRevs() {
-        return isReversed ? -uGetRevs() : uGetRevs();
+        var pos = uGetRevs() - resetPos;
+        return (isReversed ? -pos : pos);
     }
 
     public double getDegrees() {
@@ -39,8 +46,6 @@ public abstract class MotorController {
     }
 
     public abstract void stop();
-
-    public abstract void resetEncoder();
 
     public void setVoltage(double volts) {
         if (Math.abs(volts) > 12.0)

@@ -42,7 +42,8 @@ public class Robot extends TimedRobot {
   Joystick joystick;
 
   PositionedDrive drive;
-
+  Falcon leftArm;
+  Falcon rightArm;
   Imu imu;
 
   /**
@@ -80,6 +81,11 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
+    var rightArmRaise = new Falcon(10, true);
+    var leftArmRaise = new Falcon(9, false);
+    
+    this.leftArm = leftArmRaise;
+    this.rightArm = rightArmRaise;
     this.imu = new Imu(18);
 
     this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23, () -> {
@@ -143,7 +149,7 @@ public class Robot extends TimedRobot {
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
-
+    
       final var TURN_CURVE_INTENSITY = 11;
       final var GO_CURVE_INTENSITY = 5;
 
@@ -151,13 +157,25 @@ public class Robot extends TimedRobot {
       final var turnVoltage = ScaleInput.curve(con.getRightX() * 100, TURN_CURVE_INTENSITY) * (12.0 / 100.0);
 
       if (Math.abs(goVoltage) > 12) {
-        goVoltage = 12 * (goVoltage / Math.abs(goVoltage));
+        goVoltage = 12 * Math.signum(goVoltage);
       }
 
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
         drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(),turnVoltage);
       } else {
         drive.stopGoPower();
+      }
+      if (con.getTriangleButton()) {
+        leftArm.setVoltage(8);
+        rightArm.setVoltage(8);
+      }
+      else if (con.getCrossButton()) {
+        leftArm.setVoltage(-8);
+        rightArm.setVoltage(-8);
+      }
+      else {
+        leftArm.setVoltage(0);
+        rightArm.setVoltage(0);
       }
     });
     
