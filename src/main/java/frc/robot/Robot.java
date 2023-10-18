@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Auto.AutonomousDrive;
 import frc.robot.Auto.Commands.GoStraight;
+import frc.robot.Components.ArmExtender;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
@@ -42,8 +43,7 @@ public class Robot extends TimedRobot {
   Joystick joystick;
 
   PositionedDrive drive;
-  Falcon leftArm;
-  Falcon rightArm;
+  ArmExtender extender;
   Imu imu;
 
   /**
@@ -53,7 +53,19 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    // Devices
+
     this.con = new PS4Controller(0);
+
+    this.imu = new Imu(18);
+
+    // Components
+    
+    var rightArmRaise = new Falcon(10, true);
+    var leftArmRaise = new Falcon(9, false);
+    
+
+    // Drive
 
     var placeholderConstant = new PDConstant(0, 0);
 
@@ -80,13 +92,6 @@ public class Robot extends TimedRobot {
     var rightFrontGo = new Falcon(3, true);
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
-
-    var rightArmRaise = new Falcon(10, true);
-    var leftArmRaise = new Falcon(9, false);
-    
-    this.leftArm = leftArmRaise;
-    this.rightArm = rightArmRaise;
-    this.imu = new Imu(18);
 
     this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23, () -> {
       return AngleMath.toStandardPosAngle(this.imu.getTurnAngle());
@@ -137,7 +142,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
-    var constants = new PDConstant(0.14, 0.19).withMagnitude(1);
+    var constants = new PDConstant(0.1, 0.3).withMagnitude(1);
     drive.setConstants(constants);
 
     drive.reset();
@@ -165,18 +170,18 @@ public class Robot extends TimedRobot {
       } else {
         drive.stopGoPower();
       }
-      if (con.getTriangleButton()) {
-        leftArm.setVoltage(8);
-        rightArm.setVoltage(8);
-      }
-      else if (con.getCrossButton()) {
-        leftArm.setVoltage(-8);
-        rightArm.setVoltage(-8);
-      }
-      else {
-        leftArm.setVoltage(0);
-        rightArm.setVoltage(0);
-      }
+      // if (con.getTriangleButton()) {
+      //   leftArm.setVoltage(8);
+      //   rightArm.setVoltage(8);
+      // }
+      // else if (con.getCrossButton()) {
+      //   leftArm.setVoltage(-8);
+      //   rightArm.setVoltage(-8);
+      // }
+      // else {
+      //   leftArm.setVoltage(0);
+      //   rightArm.setVoltage(0);
+      // }
     });
     
   }
