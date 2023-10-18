@@ -1,6 +1,6 @@
 package frc.robot.Components;
 
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import frc.robot.Devices.MotorController;
 
 public class ArmExtender {
     MotorController motor;

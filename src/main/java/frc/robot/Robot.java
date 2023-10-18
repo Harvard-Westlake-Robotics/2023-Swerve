@@ -6,18 +6,17 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.PS4Controller;
 
-import org.ejml.dense.row.linsol.LinearSolver_FDRB_to_FDRM;
-
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Auto.AutonomousDrive;
 import frc.robot.Auto.Commands.GoStraight;
 import frc.robot.Components.ArmExtender;
+import frc.robot.Components.Intake;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
+import frc.robot.Devices.MotorController;
 import frc.robot.Devices.Motor.Falcon;
-import frc.robot.Devices.Motor.SparkMax;
 import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.PDConstant;
@@ -45,6 +44,7 @@ public class Robot extends TimedRobot {
   PositionedDrive drive;
   ArmExtender extender;
   Imu imu;
+  Intake intake;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -60,10 +60,17 @@ public class Robot extends TimedRobot {
     this.imu = new Imu(18);
 
     // Components
-    
+
+    var intakeMotor = new Falcon(61, true);
+    var intakeAimer = new Falcon(33, true);
+    var intakeAnglerController = new PDConstant(20, 0.5).withMagnitude(9);
+    this.intake = new Intake(intakeAimer, intakeMotor, intakeAnglerController);
+
     var rightArmRaise = new Falcon(10, true);
     var leftArmRaise = new Falcon(9, false);
-    
+
+    var extenderMotor = new Falcon(34, false);
+    this.extender = new ArmExtender(extenderMotor);
 
     // Drive
 
@@ -142,19 +149,20 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
-    var constants = new PDConstant(0.1, 0.3).withMagnitude(1);
+    var constants = new PDConstant(0.15, 0.15).withMagnitude(1);
     drive.setConstants(constants);
 
     drive.reset();
 
     drive.setAlignmentThreshold(0.7);
-    
+
     scheduler.registerTick(drive);
+    scheduler.registerTick(intake);
 
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
-    
+
       final var TURN_CURVE_INTENSITY = 11;
       final var GO_CURVE_INTENSITY = 5;
 
@@ -165,25 +173,25 @@ public class Robot extends TimedRobot {
         goVoltage = 12 * Math.signum(goVoltage);
       }
 
+      intake.setIntakeVolage((con.getR2Axis() + 1) * 2);
+
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
-        drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(),turnVoltage);
+        drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(), turnVoltage);
       } else {
         drive.stopGoPower();
       }
-      // if (con.getTriangleButton()) {
-      //   leftArm.setVoltage(8);
-      //   rightArm.setVoltage(8);
-      // }
-      // else if (con.getCrossButton()) {
-      //   leftArm.setVoltage(-8);
-      //   rightArm.setVoltage(-8);
-      // }
-      // else {
-      //   leftArm.setVoltage(0);
-      //   rightArm.setVoltage(0);
-      // }
+
+      intake.setWristTarget((con.getR2Axis() + 1) / 2);
+
+      if (con.getTriangleButton()) {
+        extender.setVoltage(1);
+      } else if (con.getCrossButton()) {
+        extender.setVoltage(-1);
+      } else {
+        extender.setVoltage(0);
+      }
     });
-    
+
   }
 
   /** This function is called periodically during operator control. */
