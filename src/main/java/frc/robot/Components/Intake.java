@@ -2,30 +2,27 @@ package frc.robot.Components;
 
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
-import frc.robot.Util.Tickable;
-import frc.robot.Devices.MotorController;
+import frc.robot.Devices.AnyMotor;
 
-public class Intake implements Tickable {
-    MotorController angler;
-    MotorController intake;
-    PDController pdController;
+public class Intake {
+    AnyMotor angler;
+    AnyMotor intake;
     double wristTarget = 0;
 
-    public Intake(MotorController angler, MotorController intake, PDConstant anglerConstant) {
+    public Intake(AnyMotor angler, AnyMotor intake) {
         this.angler = angler;
         this.intake = intake;
-        this.pdController = new PDController(anglerConstant);
     }
 
     public void setIntakeVolage(double voltage) {
         intake.setVoltage(voltage);
     }
 
-    public void setWristTarget(double pos) {
-        this.wristTarget = pos;
+    public void setAnglerVoltage(double voltage) {
+        angler.setVoltage(voltage);
     }
 
-    public void tick(double dTime) {
-        angler.setVoltage(pdController.solve(wristTarget - (angler.getRevs() / 20)));
+    public double getAnglerPositionDeg() {
+        return angler.getRevs() * (90.0 / 13.63) - 50;
     }
 }

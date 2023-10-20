@@ -1,10 +1,12 @@
 package frc.robot.Devices.Motor;
 
+import com.ctre.phoenixpro.controls.StaticBrake;
+import com.ctre.phoenixpro.controls.TorqueCurrentFOC;
 import com.ctre.phoenixpro.hardware.TalonFX;
 
-import frc.robot.Devices.MotorController;
+import frc.robot.Devices.AnyMotor;
 
-public class Falcon extends MotorController {
+public class Falcon extends AnyMotor {
     private TalonFX falcon;
     double stallVolt;
 
@@ -23,6 +25,8 @@ public class Falcon extends MotorController {
         falcon.setInverted(false);
         this.stallVolt = isStallable ? 3
                 : 0;
+        
+        var config = falcon.getConfigurator();
 
         // falcon.getSensorCollection();
         // /* newer config API */

@@ -11,11 +11,12 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Auto.AutonomousDrive;
 import frc.robot.Auto.Commands.GoStraight;
 import frc.robot.Components.ArmExtender;
+import frc.robot.Components.ArmLifter;
 import frc.robot.Components.Intake;
+import frc.robot.Components.IntakePD;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
-import frc.robot.Devices.MotorController;
 import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
@@ -42,9 +43,10 @@ public class Robot extends TimedRobot {
   Joystick joystick;
 
   PositionedDrive drive;
+  ArmLifter angler;
   ArmExtender extender;
   Imu imu;
-  Intake intake;
+  IntakePD intake;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -57,20 +59,24 @@ public class Robot extends TimedRobot {
 
     this.con = new PS4Controller(0);
 
+    this.joystick = new Joystick(1);
+
     this.imu = new Imu(18);
 
     // Components
 
-    var intakeMotor = new Falcon(61, true);
-    var intakeAimer = new Falcon(33, true);
-    var intakeAnglerController = new PDConstant(20, 0.5).withMagnitude(9);
-    this.intake = new Intake(intakeAimer, intakeMotor, intakeAnglerController);
-
     var rightArmRaise = new Falcon(10, true);
     var leftArmRaise = new Falcon(9, false);
+    this.angler = new ArmLifter(leftArmRaise, rightArmRaise);
+    var extenderMotorLeft = new Falcon(34, false);
+    var extenderMotorRight = new Falcon(13, true);
+    this.extender = new ArmExtender(extenderMotorLeft, extenderMotorRight);
 
-    var extenderMotor = new Falcon(34, false);
-    this.extender = new ArmExtender(extenderMotor);
+    var intakeMotor = new Falcon(61, true);
+    var intakeAimer = new Falcon(33, true);
+    var intake = new Intake(intakeAimer, intakeMotor);
+    var intakeAnglerController = new PDConstant(0.12, 0.6).withMagnitude(1);
+    this.intake = new IntakePD(intake, intakeAnglerController, 4, angler);
 
     // Drive
 
@@ -102,7 +108,7 @@ public class Robot extends TimedRobot {
 
     this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23, () -> {
       return AngleMath.toStandardPosAngle(this.imu.getTurnAngle());
-    }); // TODO: figure out actual measurements
+    }); // TODO: figure out actual robot dimensions
   }
 
   @Override
@@ -149,7 +155,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
-    var constants = new PDConstant(0.15, 0.15).withMagnitude(1);
+    var constants = new PDConstant(0.18, 0.25).withMagnitude(0.5);
     drive.setConstants(constants);
 
     drive.reset();
@@ -158,6 +164,11 @@ public class Robot extends TimedRobot {
 
     scheduler.registerTick(drive);
     scheduler.registerTick(intake);
+
+    // logging
+    scheduler.setInterval(() -> {
+      // System.out.println("intake angle: " + intake.getAnglerPositionDeg());
+    }, 2);
 
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
@@ -173,7 +184,7 @@ public class Robot extends TimedRobot {
         goVoltage = 12 * Math.signum(goVoltage);
       }
 
-      intake.setIntakeVolage((con.getR2Axis() + 1) * 2);
+      intake.setIntakeAnglerTarget((con.getR2Axis() + 1) * 90);
 
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
         drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(), turnVoltage);
@@ -181,15 +192,16 @@ public class Robot extends TimedRobot {
         drive.stopGoPower();
       }
 
-      intake.setWristTarget((con.getR2Axis() + 1) / 2);
+      angler.setVoltage(con.getRightY() * 3);
 
-      if (con.getTriangleButton()) {
-        extender.setVoltage(1);
-      } else if (con.getCrossButton()) {
-        extender.setVoltage(-1);
-      } else {
+      if (joystick.getPOV() == 0)
+        extender.setVoltage(5);
+      else if (joystick.getPOV() == 180)
+        extender.setVoltage(-5);
+      else
         extender.setVoltage(0);
-      }
+
+      angler.setVoltage(joystick.getY() * 4);
     });
 
   }

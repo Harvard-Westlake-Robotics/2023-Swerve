@@ -2,20 +2,20 @@ package frc.robot.Devices;
 
 import frc.robot.Util.MathPlus;
 
-public abstract class MotorController {
+public abstract class AnyMotor {
     Double maxSlew;
     boolean isReversed;
 
     public abstract int getID();
 
-    public MotorController(boolean isReversed, double maxSlew) {
+    public AnyMotor(boolean isReversed, double maxSlew) {
         super();
 
         this.maxSlew = maxSlew;
         this.isReversed = isReversed;
     }
 
-    public MotorController(boolean isReversed) {
+    public AnyMotor(boolean isReversed) {
         super();
 
         this.isReversed = isReversed;
@@ -55,8 +55,6 @@ public abstract class MotorController {
     }
 
     public void setPercentVoltage(double percent) {
-        if (percent != 0) 
-            System.out.println("actual volts" + percent * (12.0/100.0));
         setVoltage(percent * (12.0 / 100.0));
     }
 

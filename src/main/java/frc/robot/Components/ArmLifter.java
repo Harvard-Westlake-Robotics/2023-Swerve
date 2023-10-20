@@ -1,13 +1,22 @@
 package frc.robot.Components;
 
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import frc.robot.Devices.AnyMotor;
 
 public class ArmLifter {
-    MotorController left;
-    MotorController right;
+    AnyMotor left;
+    AnyMotor right;
 
-    public ArmLifter(MotorController left, MotorController right) {
+    public ArmLifter(AnyMotor left, AnyMotor right) {
         this.left = left;
         this.right = right;
+    }
+
+    public void setVoltage(double volts) {
+        left.setVoltage(volts);
+        right.setVoltage(volts);
+    }
+
+    public double getAngleDeg() {
+        return left.getRevs() * (90.0 / -57.0);
     }
 }

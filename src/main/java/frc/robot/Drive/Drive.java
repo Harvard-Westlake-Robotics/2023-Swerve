@@ -146,11 +146,6 @@ public class Drive implements Tickable {
             }
         }
 
-        turnErrors.exec(() -> {
-            System.out.println(
-                    frontLeft.error + ", " + frontRight.error + ", " + backLeft.error + ", " + backRight.error);
-        });
-
         int quadrant = 1;
         for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
             if (moduleTargets != null) {

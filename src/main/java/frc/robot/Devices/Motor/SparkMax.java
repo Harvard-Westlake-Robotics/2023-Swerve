@@ -5,9 +5,9 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import frc.robot.Devices.MotorController;
+import frc.robot.Devices.AnyMotor;
 
-public class SparkMax extends MotorController {
+public class SparkMax extends AnyMotor {
     private CANSparkMax maxspark;
     private RelativeEncoder encoder;
 
