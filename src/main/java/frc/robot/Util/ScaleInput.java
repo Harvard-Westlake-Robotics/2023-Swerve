@@ -13,6 +13,16 @@ public class ScaleInput {
     }
 
     /**
+     * 
+     * @param input     0 - 1
+     * @param intensity 0 - 20
+     * @return
+     */
+    public static double reverseCurve(double input, double intensity) {
+        return (100 - curve(100 - (input * 100), intensity)) / 100;
+    }
+
+    /**
      * Scale curves the avg distance of both sticks from zero and their difference
      * independently, so that we can turn at high velocities
      * 

@@ -84,7 +84,7 @@ public class AutonomousDrive implements Tickable {
             // + AngleMath.toTurnAngle(drive.getAngle()));
             System.out.println(goCorrect.getTurnAngleDeg());
         });
-        if (!turnController.isInDeadzone || !xController.isInDeadzone || turnController.isInDeadzone)
+        if (2 < turnController.getLastError() / 3 + xController.getLastError() + yController.getLastError())
             drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect, false);
         else
             drive.stopGoPower();

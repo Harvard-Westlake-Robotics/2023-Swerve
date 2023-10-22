@@ -19,7 +19,6 @@ public class IntakePD implements Tickable {
         this.lifter = lifter;
         this.antiGravIntensity = antiGravIntensity;
         this.angController = new PDController(anglerConstant);
-        intakeAnglerTarget.set(0);
     }
 
     public void setIntakeVoltage(double voltage) {
@@ -28,6 +27,14 @@ public class IntakePD implements Tickable {
 
     public void setIntakeAnglerTarget(double target) {
         intakeAnglerTarget.set(target);
+    }
+
+    public void unsafeAnglerSetIntakeVoltage(double voltage) {
+        intake.setAnglerVoltage(voltage);
+    }
+
+    public void resetAnglerEncoder() {
+        intake.resetAnglerEncoder();
     }
 
     DeSpam dSpam = new DeSpam(1);

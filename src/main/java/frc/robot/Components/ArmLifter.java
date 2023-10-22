@@ -16,6 +16,11 @@ public class ArmLifter {
         right.setVoltage(volts);
     }
 
+    public void resetPos() {
+        left.resetEncoder();
+        right.resetEncoder();
+    }
+
     public double getAngleDeg() {
         return left.getRevs() * (90.0 / -57.0);
     }

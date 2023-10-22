@@ -11,15 +11,20 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Auto.AutonomousDrive;
 import frc.robot.Auto.Commands.GoStraight;
 import frc.robot.Components.ArmExtender;
+import frc.robot.Components.ArmExtenderAntiGrav;
 import frc.robot.Components.ArmLifter;
+import frc.robot.Components.ExtenderPD;
 import frc.robot.Components.Intake;
 import frc.robot.Components.IntakePD;
+import frc.robot.Components.LifterAntiGrav;
+import frc.robot.Components.LifterPD;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
+import frc.robot.Util.Container;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.Promise;
 import frc.robot.Util.ScaleInput;
@@ -43,7 +48,7 @@ public class Robot extends TimedRobot {
   Joystick joystick;
 
   PositionedDrive drive;
-  ArmLifter angler;
+  ArmLifter lifter;
   ArmExtender extender;
   Imu imu;
   IntakePD intake;
@@ -67,7 +72,7 @@ public class Robot extends TimedRobot {
 
     var rightArmRaise = new Falcon(10, true);
     var leftArmRaise = new Falcon(9, false);
-    this.angler = new ArmLifter(leftArmRaise, rightArmRaise);
+    this.lifter = new ArmLifter(leftArmRaise, rightArmRaise);
     var extenderMotorLeft = new Falcon(34, false);
     var extenderMotorRight = new Falcon(13, true);
     this.extender = new ArmExtender(extenderMotorLeft, extenderMotorRight);
@@ -75,8 +80,8 @@ public class Robot extends TimedRobot {
     var intakeMotor = new Falcon(61, true);
     var intakeAimer = new Falcon(33, true);
     var intake = new Intake(intakeAimer, intakeMotor);
-    var intakeAnglerController = new PDConstant(0.12, 0.6).withMagnitude(1);
-    this.intake = new IntakePD(intake, intakeAnglerController, 4, angler);
+    var intakeAnglerController = new PDConstant(0.12, 0.6, 5.0).withMagnitude(1);
+    this.intake = new IntakePD(intake, intakeAnglerController, 4, lifter);
 
     // Drive
 
@@ -115,34 +120,34 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     scheduler.clear();
 
-    drive.reset();
-    drive.setAlignmentThreshold(0.15);
+    // drive.reset();
+    // drive.setAlignmentThreshold(0.15);
 
-    var con = new PDConstant(0.1, 0.07);
-    drive.setConstants(con);
+    // var con = new PDConstant(0.1, 0.07);
+    // drive.setConstants(con);
 
-    scheduler.registerTick(drive);
+    // scheduler.registerTick(drive);
 
-    var goPD = new PDConstant(1, 4, 0.2).withMagnitude(0.3);
-    var turnPD = new PDConstant(0.5, 0.0, 1).withMagnitude(0.3);
-    var autoDrive = new AutonomousDrive(drive, goPD, turnPD);
-    autoDrive.reset();
+    // var goPD = new PDConstant(1, 4, 0.2).withMagnitude(0.3);
+    // var turnPD = new PDConstant(0.5, 0.0, 1).withMagnitude(0.3);
+    // var autoDrive = new AutonomousDrive(drive, goPD, turnPD);
+    // autoDrive.reset();
 
-    scheduler.registerTick(autoDrive);
+    // scheduler.registerTick(autoDrive);
 
-    Promise.immediate().then(() -> {
-      return autoDrive.exec(
-          new GoStraight(50, 20, 0));
-    }).then(() -> {
-      return autoDrive.exec(
-          new GoStraight(50, 20, 90));
-    }).then(() -> {
-      return autoDrive.exec(
-          new GoStraight(50, 20, 180));
-    }).then(() -> {
-      return autoDrive.exec(
-          new GoStraight(50, 20, 270));
-    });
+    // Promise.immediate().then(() -> {
+    // return autoDrive.exec(
+    // new GoStraight(50, 20, 0));
+    // }).then(() -> {
+    // return autoDrive.exec(
+    // new GoStraight(50, 20, 90));
+    // }).then(() -> {
+    // return autoDrive.exec(
+    // new GoStraight(50, 20, 180));
+    // }).then(() -> {
+    // return autoDrive.exec(
+    // new GoStraight(50, 20, 270));
+    // });
   }
 
   /** This function is called periodically during autonomous. */
@@ -155,20 +160,25 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     scheduler.clear();
 
-    var constants = new PDConstant(0.18, 0.25).withMagnitude(0.5);
+    var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
     drive.setConstants(constants);
-
     drive.reset();
-
     drive.setAlignmentThreshold(0.7);
-
     scheduler.registerTick(drive);
-    scheduler.registerTick(intake);
+
+    LifterPD lifterPD = new LifterPD(lifter, new PDConstant(1.5, 1.5, 7.0));
+    var liftPreseting = new Container<Boolean>(false);
+    var extenderPD = new ExtenderPD(extender, new PDConstant(1, 5, 4.0), lifter);
+    var armExtendPreseting = new Container<Boolean>(false);
 
     // logging
-    scheduler.setInterval(() -> {
-      // System.out.println("intake angle: " + intake.getAnglerPositionDeg());
-    }, 2);
+    // scheduler.setInterval(() -> {
+    // System.out.println("extender length: " + extender.getExtensionInches());
+    // }, 2);
+
+    var initialTurnAngle = imu.getTurnAngle();
+
+    intake.setIntakeAnglerTarget(-60);
 
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
@@ -184,26 +194,87 @@ public class Robot extends TimedRobot {
         goVoltage = 12 * Math.signum(goVoltage);
       }
 
-      intake.setIntakeAnglerTarget((con.getR2Axis() + 1) * 90);
+      // Intake Angler
+      intake.setIntakeAnglerTarget(ScaleInput.reverseCurve(((con.getR2Axis() + 1) / 2), 12) * 175 - 60);
+
+      // Intake
+      if (con.getR1Button())
+        intake.setIntakeVoltage(12);
+      else if (con.getL1Button())
+        intake.setIntakeVoltage(-9);
+      else
+        intake.setIntakeVoltage(((con.getL2Axis() + 1) / 2) * 12);
 
       if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
-        drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(), turnVoltage);
+        drive.power(goVoltage, goVec.getAngleDeg() - (imu.getTurnAngle() - initialTurnAngle), turnVoltage);
       } else {
         drive.stopGoPower();
       }
 
-      angler.setVoltage(con.getRightY() * 3);
+      Double anglerTar = null;
+      Double extenderTar = null;
 
-      if (joystick.getPOV() == 0)
-        extender.setVoltage(5);
-      else if (joystick.getPOV() == 180)
-        extender.setVoltage(-5);
+      if (joystick.getRawButtonPressed(3))
+        anglerTar = 0.0;
+      if (joystick.getRawButtonPressed(5))
+        anglerTar = 40.0;
+
+      if (joystick.getRawButtonPressed(4))
+        extenderTar = 0.0;
+      if (joystick.getRawButtonPressed(6))
+        extenderTar = 40.0;
+
+      if (joystick.getRawButtonPressed(2)) {
+        anglerTar = 40.0;
+        extenderTar = 20.0;
+      }
+
+      if (anglerTar != null) {
+        lifterPD.setTarget(anglerTar);
+        liftPreseting.val = true;
+        scheduler.setTimeout(() -> {
+          liftPreseting.val = false;
+        }, 1.7);
+      }
+
+      if (extenderTar != null) {
+        extenderPD.forceSetTar(extender.getExtensionInches());
+        extenderPD.setTarget(extenderTar);
+        armExtendPreseting.val = true;
+        scheduler.setTimeout(() -> {
+          armExtendPreseting.val = false;
+        }, 1.7);
+      }
+
+      if (!liftPreseting.val)
+        lifter.setVoltage(joystick.getY() * -4
+            + LifterAntiGrav.calcLifterAntiGrav(lifter.getAngleDeg(), extender.getExtensionInches()));
       else
-        extender.setVoltage(0);
+        lifterPD.tick(dTime);
 
-      angler.setVoltage(joystick.getY() * 4);
+      if (!armExtendPreseting.val) {
+        final var joyPOV = AngleMath.conformAngle(joystick.getPOV());
+        final var joyPOVy = Math.cos(Math.toDegrees(joyPOV));
+        final double armAntiGravVoltage = ArmExtenderAntiGrav.getAntiGravVoltage(lifter.getAngleDeg());
+        if (joyPOV == -1) {
+          extender.setVoltage(0 + armAntiGravVoltage);
+        } else {
+          if (joyPOVy < 0) {
+            extender.setVoltage(joyPOVy * 2 + armAntiGravVoltage);
+          } else {
+            extender.setVoltage(joyPOVy * 3 + armAntiGravVoltage);
+          }
+        }
+      } else {
+        extenderPD.tick(dTime);
+      }
     });
 
+    scheduler.registerTick(intake);
+
+    scheduler.registerTick((dt) -> {
+      System.out.println("idk");
+    });
   }
 
   /** This function is called periodically during operator control. */
@@ -243,6 +314,8 @@ public class Robot extends TimedRobot {
   public void testInit() {
     scheduler.clear();
 
+    extender.reset();
+
     var constants = new PDConstant(0.14, 0.12).withMagnitude(0.8);
     drive.setConstants(constants);
 
@@ -251,6 +324,13 @@ public class Robot extends TimedRobot {
     drive.setAlignmentThreshold(0.7);
 
     scheduler.registerTick(drive);
+    intake.unsafeAnglerSetIntakeVoltage(-0.5);
+    drive.power(0.001, 90, 0);
+    lifter.setVoltage(0.5);
+    scheduler.registerTick((double dTime) -> {
+      intake.resetAnglerEncoder();
+      lifter.resetPos();
+    });
   }
 
   /** This function is called periodically during test mode. */

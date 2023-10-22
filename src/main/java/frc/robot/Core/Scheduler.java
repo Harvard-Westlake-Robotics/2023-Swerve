@@ -79,7 +79,10 @@ public class Scheduler {
         Container<CancelablePromise> prom = new Container<CancelablePromise>(null);
 
         items = Arrays.copyOf(items, items.length + 1);
-        var item = new ScheduleItem(() -> {callBack.run() ; prom.val.resolve();}, delay + Timer.getFPGATimestamp());
+        var item = new ScheduleItem(() -> {
+            callBack.run();
+            prom.val.resolve();
+        }, delay + Timer.getFPGATimestamp());
 
         prom.val = new CancelablePromise(() -> {
             item.executable = () -> {

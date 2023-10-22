@@ -1,19 +1,17 @@
 package frc.robot.Util;
 
 public class PDController {
-    double P_CONSTANT;
-    double D_CONSTANT;
-    double deadzone;
+    PDConstant constant;
 
     double lastError = 0;
 
-    public PDController(PDConstant constants) {
-        P_CONSTANT = constants.kP;
-        D_CONSTANT = constants.kD;
-        this.deadzone = constants.deadzone;
+    public double getLastError() {
+        return lastError;
     }
 
-    public boolean isInDeadzone = false;
+    public PDController(PDConstant constants) {
+        this.constant = constants.clone();
+    }
 
     /**
      * @param currentError the distance to the target from the current value (target
@@ -21,20 +19,18 @@ public class PDController {
      * @return A correctional value
      */
     public double solve(double currentError) {
-        double p_correct = P_CONSTANT * currentError;
-        if (Math.abs(p_correct) < deadzone) {
-            p_correct = 0;
-            isInDeadzone = true;
-        } else {
-            p_correct = (p_correct > 0) ? p_correct - deadzone : p_correct + deadzone;
-            isInDeadzone = false;
-        }
+        double p_correct = constant.kP * currentError;
 
-        double d_correct = D_CONSTANT * (currentError - lastError);
+        double d_correct = constant.kD * (currentError - lastError);
 
         lastError = currentError;
 
-        return p_correct + d_correct;
+        var err = p_correct + d_correct;
+
+        if (constant.max != null && Math.abs(err) > Math.abs(constant.max))
+            return Math.abs(constant.max) * Math.signum(err);
+
+        return err;
     }
 
     public void reset() {

@@ -3,16 +3,16 @@ package frc.robot.Util;
 public class PDConstant {
     final double kP;
     final double kD;
-    final double deadzone;
+    final Double max;
     
-    public PDConstant(double p_CONSTANT, double d_CONSTANT, double deadzone) {
+    public PDConstant(double p_CONSTANT, double d_CONSTANT, Double max) {
         kP = p_CONSTANT;
         kD = d_CONSTANT;
-        this.deadzone = deadzone;
+        this.max = max;
     }
 
     public PDConstant(double p_CONSTANT, double d_CONSTANT) {
-        this(p_CONSTANT, d_CONSTANT, 0);
+        this(p_CONSTANT, d_CONSTANT, null);
     }
 
 
@@ -23,6 +23,10 @@ public class PDConstant {
      * @return
      */
     public PDConstant withMagnitude(double fac) {
-        return new PDConstant(kP * fac, kD * fac, deadzone);
+        return new PDConstant(kP * fac, kD * fac, max);
+    }
+
+    public PDConstant clone() {
+        return new  PDConstant(kP, kD, max);
     }
 }

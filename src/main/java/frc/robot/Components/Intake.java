@@ -18,6 +18,10 @@ public class Intake {
         intake.setVoltage(voltage);
     }
 
+    public void resetAnglerEncoder() {
+        angler.resetEncoder();
+    }
+
     public void setAnglerVoltage(double voltage) {
         angler.setVoltage(voltage);
     }

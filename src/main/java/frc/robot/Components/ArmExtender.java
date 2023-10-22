@@ -20,8 +20,12 @@ public class ArmExtender {
         right.setVoltage(voltage);
     }
 
+    public void reset() {
+        left.resetEncoder();
+        right.resetEncoder();
+    }
+
     public double getExtensionInches() {
-        // / 41.0;
-        return 0;
+        return left.getRevs() / 22.79 * 41.0;
     }
 }
