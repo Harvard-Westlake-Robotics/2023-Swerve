@@ -1,7 +1,6 @@
 package frc.robot.Devices.Motor;
 
-import com.ctre.phoenixpro.controls.StaticBrake;
-import com.ctre.phoenixpro.controls.TorqueCurrentFOC;
+import com.ctre.phoenixpro.controls.CoastOut;
 import com.ctre.phoenixpro.hardware.TalonFX;
 
 import frc.robot.Devices.AnyMotor;
@@ -26,7 +25,8 @@ public class Falcon extends AnyMotor {
         this.stallVolt = isStallable ? 3
                 : 0;
         
-        var config = falcon.getConfigurator();
+        // var config = falcon.getConfigurator();
+        // falcon.setControl(new CoastOut());
 
         // falcon.getSensorCollection();
         // /* newer config API */

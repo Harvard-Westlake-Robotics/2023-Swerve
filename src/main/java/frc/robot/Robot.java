@@ -8,8 +8,6 @@ import edu.wpi.first.wpilibj.PS4Controller;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import frc.robot.Auto.AutonomousDrive;
-import frc.robot.Auto.Commands.GoStraight;
 import frc.robot.Components.ArmExtender;
 import frc.robot.Components.ArmExtenderAntiGrav;
 import frc.robot.Components.ArmLifter;
@@ -116,28 +114,50 @@ public class Robot extends TimedRobot {
     }); // TODO: figure out actual robot dimensions
   }
 
+  int driveGone = 0;
+  double angle;
   @Override
   public void autonomousInit() {
     scheduler.clear();
 
-    // drive.reset();
-    // drive.setAlignmentThreshold(0.15);
+    drive.reset();
+    drive.setAlignmentThreshold(0.15);
 
-    // var con = new PDConstant(0.1, 0.07);
-    // drive.setConstants(con);
+    var con = new PDConstant(0.1, 0.07);
+    drive.setConstants(con);
 
-    // scheduler.registerTick(drive);
+    scheduler.registerTick(drive);
 
-    // var goPD = new PDConstant(1, 4, 0.2).withMagnitude(0.3);
-    // var turnPD = new PDConstant(0.5, 0.0, 1).withMagnitude(0.3);
+    var goPD = new PDConstant(1, 4, 0.2).withMagnitude(0.3);
+    var turnPD = new PDConstant(0.5, 0, 1.0).withMagnitude(0.3);
     // var autoDrive = new AutonomousDrive(drive, goPD, turnPD);
     // autoDrive.reset();
-
-    // scheduler.registerTick(autoDrive);
-
+    scheduler.registerTick(drive);
     // Promise.immediate().then(() -> {
     // return autoDrive.exec(
-    // new GoStraight(50, 20, 0));
+    // new GoStraight(50, 100,90));
+    // });
+    angle = imu.getTurnAngle();
+    scheduler.registerTick((double dTime) -> {
+      // TODO: figure out why pink ps5 has inverted y axis (inverted below)
+      if (driveGone > 0 && ((imu.getTurnAngle() - angle < -1) || imu.getTurnAngle() - angle > 1)) {
+        if ((imu.getTurnAngle() - angle < -1)) {
+          drive.power(0, 90, -0.5);
+        } else {
+          drive.power(0, 90, 0.5);
+        }
+      } else if (driveGone <= 400) {
+        angle = imu.getTurnAngle();
+        drive.power(1, 90, 0);
+        driveGone += 1;
+      } else {
+        drive.power(0.01, 90, 0);
+      }
+
+      // Intake Angler
+
+    });
+
     // }).then(() -> {
     // return autoDrive.exec(
     // new GoStraight(50, 20, 90));
@@ -211,26 +231,25 @@ public class Robot extends TimedRobot {
         drive.stopGoPower();
       }
 
-      Double anglerTar = null;
+      Double lifterTar = null;
       Double extenderTar = null;
 
       if (joystick.getRawButtonPressed(3))
-        anglerTar = 0.0;
-      if (joystick.getRawButtonPressed(5))
-        anglerTar = 40.0;
-
-      if (joystick.getRawButtonPressed(4))
-        extenderTar = 0.0;
-      if (joystick.getRawButtonPressed(6))
-        extenderTar = 40.0;
-
-      if (joystick.getRawButtonPressed(2)) {
-        anglerTar = 40.0;
+        lifterTar = 0.0;
+      if (joystick.getRawButtonPressed(5)) {
+        lifterTar = 40.0;
         extenderTar = 20.0;
       }
 
-      if (anglerTar != null) {
-        lifterPD.setTarget(anglerTar);
+      if (joystick.getRawButtonPressed(4))
+        extenderTar = 0.0;
+      if (joystick.getRawButtonPressed(6)) {
+        extenderTar = 40.0;
+        lifterTar = 40.0;
+      }
+
+      if (lifterTar != null) {
+        lifterPD.setTarget(lifterTar);
         liftPreseting.val = true;
         scheduler.setTimeout(() -> {
           liftPreseting.val = false;
