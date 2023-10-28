@@ -1,7 +1,5 @@
 package frc.robot.Components;
 
-import frc.robot.Util.PDConstant;
-import frc.robot.Util.PDController;
 import frc.robot.Devices.AnyMotor;
 
 public class Intake {

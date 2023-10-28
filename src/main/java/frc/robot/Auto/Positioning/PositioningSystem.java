@@ -1,6 +1,5 @@
-package frc.robot.Auto;
+package frc.robot.Auto.Positioning;
 
-import frc.robot.Auto.Drive.RobotPosition;
 import frc.robot.Util.Vector2;
 
 public interface PositioningSystem {
@@ -8,4 +7,5 @@ public interface PositioningSystem {
     Vector2 getPosition();
     Vector2 getSpeed();
     Vector2 getAcceleration();
+    void zero();
 }

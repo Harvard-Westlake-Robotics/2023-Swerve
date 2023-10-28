@@ -51,7 +51,7 @@ public class Scheduler {
         Container<Lambda> interval = new Container<Lambda>(null);
         interval.val = () -> {
             callBack.run();
-            item.executeTime = Timer.getFPGATimestamp() + delay;
+            item.executeTime = Time.getTimeSincePower() + delay;
         };
         interval.val.run();
 

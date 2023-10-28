@@ -1,6 +1,5 @@
 package frc.robot.Devices.Motor;
 
-import com.ctre.phoenixpro.controls.CoastOut;
 import com.ctre.phoenixpro.hardware.TalonFX;
 
 import frc.robot.Devices.AnyMotor;

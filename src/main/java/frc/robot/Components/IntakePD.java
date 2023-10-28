@@ -12,7 +12,7 @@ public class IntakePD implements Tickable {
     ArmExtender extender;
     PDController angController;
     double antiGravIntensity;
-    LERP intakeAnglerTarget = new LERP(260);
+    LERP intakeAnglerTarget = new LERP(400);
 
     public IntakePD(Intake intake, PDConstant anglerConstant, double antiGravIntensity, ArmLifter lifter) {
         this.intake = intake;
@@ -23,6 +23,10 @@ public class IntakePD implements Tickable {
 
     public void setIntakeVoltage(double voltage) {
         intake.setIntakeVolage(voltage);
+    }
+
+    public double getTargetAngle() {
+        return intakeAnglerTarget.get();
     }
 
     public void setIntakeAnglerTarget(double target) {
@@ -45,8 +49,8 @@ public class IntakePD implements Tickable {
                 * Math.sin(Math.toRadians(intake.getAnglerPositionDeg() - lifter.getAngleDeg()));
         final double pdCorrect = angController.solve(intakeAnglerTarget.get() - intake.getAnglerPositionDeg());
         intake.setAnglerVoltage(pdCorrect + antiGrav);
-        dSpam.exec(() -> {
-            System.out.println("antigrav: " + antiGrav);
-        });
+        // dSpam.exec(() -> {
+        //     System.out.println("antigrav: " + antiGrav);
+        // });
     }
 }
