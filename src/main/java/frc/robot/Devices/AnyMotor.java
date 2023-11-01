@@ -22,6 +22,8 @@ public abstract class AnyMotor {
         maxSlew = null;
     }
 
+    public abstract void setCurrentLimit(int amps);
+
     protected abstract void uSetVoltage(double voltage);
 
     protected abstract double uGetRevs();

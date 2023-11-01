@@ -6,7 +6,7 @@ public class CancelablePromise extends Promise {
     public CancelablePromise(Lambda cancel) {
         this.cancel = cancel;
     }
-    
+
     public void cancel() {
         cancel.run();
     }

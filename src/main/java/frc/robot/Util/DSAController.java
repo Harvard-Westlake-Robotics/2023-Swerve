@@ -1,6 +1,6 @@
 package frc.robot.Util;
 
-public class DSAController {
+public class DSAController implements MotionController {
     double P_CONSTANT;
     double D_CONSTANT;
     double DD_CONSTANT;
@@ -25,7 +25,7 @@ public class DSAController {
      *                     value - current value)
      * @return A correctional value
      */
-    public double solve(double currentError) {
+    public double solve(double currentError, double dTime) {
         double p_correct = P_CONSTANT * currentError;
         if (Math.abs(p_correct) < deadzone) {
             p_correct = 0;

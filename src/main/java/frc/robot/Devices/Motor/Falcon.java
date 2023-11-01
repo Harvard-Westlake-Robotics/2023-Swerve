@@ -1,5 +1,6 @@
 package frc.robot.Devices.Motor;
 
+import com.ctre.phoenixpro.configs.CurrentLimitsConfigs;
 import com.ctre.phoenixpro.hardware.TalonFX;
 
 import frc.robot.Devices.AnyMotor;
@@ -14,6 +15,13 @@ public class Falcon extends AnyMotor {
         return id;
     }
 
+    public void setCurrentLimit(int amps) {
+        var config = falcon.getConfigurator();
+        var currentConfig = new CurrentLimitsConfigs();
+        currentConfig.SupplyCurrentLimit = amps;
+        config.apply(currentConfig);
+    }
+
     public Falcon(int deviceNumber, boolean isReversed, boolean isStallable) {
         super(isReversed);
 
@@ -23,7 +31,7 @@ public class Falcon extends AnyMotor {
         falcon.setInverted(false);
         this.stallVolt = isStallable ? 3
                 : 0;
-        
+
         // var config = falcon.getConfigurator();
         // falcon.setControl(new CoastOut());
 

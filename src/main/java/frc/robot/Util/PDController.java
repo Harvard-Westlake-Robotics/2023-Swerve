@@ -1,6 +1,6 @@
 package frc.robot.Util;
 
-public class PDController {
+public class PDController implements MotionController {
     PDConstant constant;
 
     double lastError = 0;
@@ -13,15 +13,19 @@ public class PDController {
         this.constant = constants.clone();
     }
 
+    public double solve(double currentError) {
+        return solve(currentError, 1);
+    }
+
     /**
      * @param currentError the distance to the target from the current value (target
      *                     value - current value)
      * @return A correctional value
      */
-    public double solve(double currentError) {
+    public double solve(double currentError, double dTime) {
         double p_correct = constant.kP * currentError;
 
-        double d_correct = constant.kD * (currentError - lastError);
+        double d_correct = constant.kD * (currentError - lastError) / dTime;
 
         lastError = currentError;
 

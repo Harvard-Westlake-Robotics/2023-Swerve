@@ -11,6 +11,10 @@ public class SparkMax extends AnyMotor {
     private CANSparkMax maxspark;
     private RelativeEncoder encoder;
 
+    public void setCurrentLimit(int amps) {
+        maxspark.setSmartCurrentLimit(amps);
+    }
+
     final int id;
     public int getID() {
         return id;

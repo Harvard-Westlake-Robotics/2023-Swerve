@@ -9,10 +9,6 @@ public abstract class DriveCommand {
     protected Drive drive;
     protected Lambda finish;
 
-    public DriveCommand() {
-
-    }
-
     public void init(PositionedDrive drive, Lambda finish) {
         this.drive = drive;
         this.finish = finish;

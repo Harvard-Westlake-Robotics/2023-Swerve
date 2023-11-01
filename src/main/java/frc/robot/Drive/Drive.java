@@ -15,8 +15,6 @@ public class Drive implements Tickable {
     protected double lengthInches;
     protected double circumferenceInches;
 
-    private DeSpam turnErrors = new DeSpam(0.2);
-
     private double alignmentThreshold = 1;
 
     // how aligned the motors need to be to their ideals before going (0, 1]

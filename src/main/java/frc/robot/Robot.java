@@ -77,7 +77,7 @@ public class Robot extends TimedRobot {
     var intakeMotor = new Falcon(61, true);
     var intakeAimer = new Falcon(33, true);
     var intake = new Intake(intakeAimer, intakeMotor);
-    var intakeAnglerController = new PDConstant(0.12, 0.6).withMagnitude(1);
+    var intakeAnglerController = new PDConstant(0.6, 0.6).withMagnitude(1);
     this.intake = new IntakePD(intake, intakeAnglerController, 2, lifter);
 
     // Drive
@@ -248,7 +248,7 @@ public class Robot extends TimedRobot {
       if (joystick.getRawButtonPressed(5)) {
         lifterTar = 40.0;
         extenderTar = 20.0;
-        intake.setIntakeAnglerTarget(90);
+        intake.setIntakeAnglerTarget(100);
       }
 
       if (joystick.getRawButtonPressed(4)) {
@@ -258,25 +258,25 @@ public class Robot extends TimedRobot {
       if (joystick.getRawButtonPressed(6)) {
         extenderTar = 41.0;
         lifterTar = 43.0;
-        intake.setIntakeAnglerTarget(115);
+        intake.setIntakeAnglerTarget(90);
       }
 
       if (joystick.getRawButtonPressed(2)) {
-        intake.setIntakeAnglerTarget(115);
+        intake.setIntakeAnglerTarget(90);
       }
 
       if (joystick.getTriggerPressed()) {
-        extenderTar = 0.0;
-        lifterTar = 60.0;
-        intake.setIntakeAnglerTarget(-60);
+        extenderTar = 7.0;
+        lifterTar = 80.0;
+        intake.setIntakeAnglerTarget(-50);
       }
 
       if (con.getR2ButtonPressed())
-        intake.setIntakeAnglerTarget(115);
+        intake.setIntakeAnglerTarget(90);
       else if (con.getL2ButtonPressed())
         intake.setIntakeAnglerTarget(-60);
 
-      if (lifterTar != null) {
+      if (lifterTar != null && !liftPreseting.val) {
         lifterPD.setTarget(lifterTar);
         liftPreseting.val = true;
         scheduler.setTimeout(() -> {
@@ -284,7 +284,7 @@ public class Robot extends TimedRobot {
         }, 1.7);
       }
 
-      if (extenderTar != null) {
+      if (extenderTar != null && !armExtendPreseting.val) {
         extenderPD.forceSetTar(extender.getExtensionInches());
         extenderPD.setTarget(extenderTar);
         armExtendPreseting.val = true;

@@ -116,6 +116,27 @@ public class Scheduler {
         }
     }
 
+    CancelablePromise runCommand(ScheduledCommand command) {
+        command.start();
+        var checkAndStop = new Container<Lambda>(null);
+        var prom = new CancelablePromise(() -> {
+            command.complete();
+            checkAndStop.val.run();
+        });
+        var cancel = registerTick((double dT) -> {
+            command.tick(dT);
+            checkAndStop.val.run();
+        });
+        checkAndStop.val = () -> {
+            if (command.isComplete()) {
+                cancel.run();
+                command.end();
+                prom.resolve();
+            }
+        };
+        return prom;
+    }
+
     public void clear() {
         items = new ScheduleItem[0];
     }

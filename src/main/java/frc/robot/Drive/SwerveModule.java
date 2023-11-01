@@ -1,5 +1,4 @@
 package frc.robot.Drive;
-
 import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Util.AngleMath;
 
@@ -10,6 +9,9 @@ public class SwerveModule {
     public SwerveModule(Falcon turn, Falcon go) {
         this.turn = turn;
         this.go = go;
+
+        turn.setCurrentLimit(35);
+        go.setCurrentLimit(52);
 
         turn.resetEncoder();
         go.resetEncoder();

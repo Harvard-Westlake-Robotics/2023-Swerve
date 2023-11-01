@@ -12,7 +12,7 @@ public class IntakePD implements Tickable {
     ArmExtender extender;
     PDController angController;
     double antiGravIntensity;
-    LERP intakeAnglerTarget = new LERP(400);
+    LERP intakeAnglerTarget = new LERP(300);
 
     public IntakePD(Intake intake, PDConstant anglerConstant, double antiGravIntensity, ArmLifter lifter) {
         this.intake = intake;

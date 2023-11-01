@@ -22,26 +22,6 @@ public class AutonomousDrive implements Tickable {
     double targetY;
     double targetAngle; // turn angle
 
-    DriveCommand command = null;
-
-    public Promise exec(DriveCommand command) {
-        return exec(command, false);
-    }
-
-    public Promise exec(DriveCommand command, boolean override) {
-        var promise = new Promise();
-        if (!override && this.command != null) {
-            throw new IllegalStateException("Cannot execute command while another command is running");
-        }
-        this.command = command;
-        command.init(drive, () -> {
-            if (this.command == command)
-                this.command = null;
-            promise.resolve();
-        });
-        return promise;
-    }
-
     public AutonomousDrive(PositionedDrive drive, PositioningSystem pos, PDConstant goConstants,
             PDConstant turnConstants) {
         this.drive = drive;
@@ -66,12 +46,6 @@ public class AutonomousDrive implements Tickable {
     DeSpam deSpam = new DeSpam(0.1);
 
     public void tick(double dTime) {
-        if (command != null) {
-            Position tick = command.nextTar(dTime);
-            targetX = tick.position.x;
-            targetY = tick.position.y;
-            targetAngle = tick.angle;
-        }
         double xCorrect = xController.solve(targetX - pos.getPosition().x);
         double yCorrect = yController.solve(targetY - pos.getPosition().y);
 
