@@ -1,53 +1,61 @@
 package frc.robot.Util;
 
 import java.util.ArrayList;
+import java.util.List;
 
+// A class that represents a simplistic promise for asynchronous operations.
 public class Promise {
-    private boolean resolved = false;
+
+    private boolean resolved = false; // Flag to check if the promise has been resolved.
+
+    // A list to hold the lambda expressions (callbacks) that should run after the promise is resolved.
+    private List<Lambda> callbacks = new ArrayList<>();
+
+    // Checks if the promise has been resolved.
     public boolean isResolved() {
         return resolved;
     }
-    ArrayList<Lambda> thens = new ArrayList<Lambda>();
 
+    // Creates and resolves a promise immediately.
     public static Promise immediate() {
-        final var prom = new Promise();
-        prom.resolve();
-        return prom;
+        Promise promise = new Promise();
+        promise.resolve();
+        return promise;
     }
 
-    public void then(Lambda then) {
-        if (resolved)
-            then.run();
-        else
-            thens.add(then);
-    }
-
-    public Promise then(Getter<Promise> then) {
+    // Adds a callback to be executed when the promise is resolved.
+    public void then(Lambda callback) {
         if (resolved) {
-            return then.get();
+            callback.run();
         } else {
-            Container<Promise> nextProm = new Container<Promise>(null);
-            Promise retProm = new Promise();
-
-            thens.add(() -> {
-                nextProm.val = then.get();
-            });
-
-            this.then(() -> {
-                nextProm.val.then(() -> {
-                    retProm.resolve();
-                });
-            });
-
-            return retProm;
+            callbacks.add(callback);
         }
     }
 
+    // Adds a chain of promises, resolving each sequentially.
+    public Promise then(Getter<Promise> promiseGetter) {
+        if (resolved) {
+            return promiseGetter.get();
+        } else {
+            Container<Promise> nextPromiseContainer = new Container<>(null);
+            Promise returnPromise = new Promise();
+
+            // Add a lambda that sets the next promise when this promise is resolved.
+            callbacks.add(() -> nextPromiseContainer.val = promiseGetter.get());
+
+            // When this promise is resolved, resolve the next promise.
+            this.then(() -> nextPromiseContainer.val.then(returnPromise::resolve));
+
+            return returnPromise;
+        }
+    }
+
+    // Resolves the promise, running any callbacks that have been added.
     public void resolve() {
         if (!resolved) {
             resolved = true;
-            for (var exec : thens) {
-                exec.run();
+            for (Lambda callback : callbacks) {
+                callback.run();
             }
         }
     }

@@ -1,19 +1,17 @@
 package frc.robot.Core;
 
 import java.util.Arrays;
-
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Util.*;
 
 /**
- * IF YOU DON'T KNOW WHAT THIS CLASS DOES, PLEASE DON'T DELETE IT
- * it allows us to schedule functions for execution at various times during the
- * auton
+ * The Scheduler class allows for scheduling and execution of tasks and functions
+ * at specified times or intervals, which is especially useful during autonomous
+ * robot operations.
  */
-
 class ScheduleItem {
-    public Lambda executable;
-    public double executeTime;
+    public Lambda executable;   // The function to execute.
+    public double executeTime;  // The scheduled time for execution.
 
     public ScheduleItem(Lambda executable, double executeTime) {
         this.executable = executable;
@@ -22,14 +20,12 @@ class ScheduleItem {
 }
 
 public class Scheduler {
-    private ScheduleItem[] items = new ScheduleItem[] {};
+    private ScheduleItem[] items = new ScheduleItem[] {}; // Array to hold scheduled items.
 
     /**
-     * Runs a `Tickable` every tick
-     * 
-     * @param tickable the `Tickable` instance to run the `tick()` method on every
-     *                 tick in the event loop
-     * @return a function to remove the tickable from the event loop
+     * Registers a Tickable object to be called every tick.
+     * @param tickable The Tickable instance to run every tick.
+     * @return A Lambda to remove the tickable from the event loop.
      */
     public Lambda registerTick(Tickable tickable) {
         double[] lastTime = new double[] { Timer.getFPGATimestamp() };
@@ -40,59 +36,55 @@ public class Scheduler {
     }
 
     /**
-     * calls a callback at a given interval
-     * 
-     * @param callBack the function to call periodically
-     * @param delay    how often to call the function
-     * @return a function to cancel the interval
+     * Schedules a function to be called repeatedly at a fixed delay.
+     * @param callBack The function to call.
+     * @param delay The interval between calls.
+     * @return A Lambda to cancel the interval.
      */
     public Lambda setInterval(Lambda callBack, double delay) {
         var item = new ScheduleItem(null, delay + Timer.getFPGATimestamp());
         Container<Lambda> interval = new Container<Lambda>(null);
         interval.val = () -> {
             callBack.run();
-            item.executeTime = Time.getTimeSincePower() + delay;
+            item.executeTime = Timer.getFPGATimestamp() + delay;
         };
-        interval.val.run();
+        interval.val.run(); // Run the interval once immediately.
 
         item.executable = interval.val;
-
-        // appends the new item to the schedule
-        items = Arrays.copyOf(items, items.length + 1);
+        items = Arrays.copyOf(items, items.length + 1); // Extend the array for the new item.
         items[items.length - 1] = item;
 
         return () -> {
-            item.executable = () -> {
-            };
+            item.executable = () -> {}; // Empty runnable to effectively remove the item.
         };
     }
 
     /**
-     * calls a callback after a given period
-     * 
-     * @param callBack the function to call after the timeout
-     * @param delay    how long the timeout will be before the function is called
-     * @return a function to cancel the calling of the function
+     * Schedules a function to be called after a delay.
+     * @param callBack The function to call after the delay.
+     * @param delay The time to wait before calling the function.
+     * @return A CancelablePromise to cancel the timeout.
      */
     public CancelablePromise setTimeout(Lambda callBack, double delay) {
-
         Container<CancelablePromise> prom = new Container<CancelablePromise>(null);
 
-        items = Arrays.copyOf(items, items.length + 1);
+        items = Arrays.copyOf(items, items.length + 1); // Extend the array for the new item.
         var item = new ScheduleItem(() -> {
             callBack.run();
             prom.val.resolve();
-        }, delay + Timer.getFPGATimestamp());
+        }, Timer.getFPGATimestamp() + delay);
 
         prom.val = new CancelablePromise(() -> {
-            item.executable = () -> {
-            };
+            item.executable = () -> {}; // Empty runnable to effectively remove the item.
         });
 
         items[items.length - 1] = item;
         return prom.val;
     }
 
+    /**
+     * Processes all scheduled items and executes those whose time has come.
+     */
     public void tick() {
         boolean runCleanUp = false;
         double currentTime = Timer.getFPGATimestamp();
@@ -104,6 +96,7 @@ public class Scheduler {
             }
         }
         if (runCleanUp) {
+            // Filter out executed items and create a new list of pending items.
             var newItems = Arrays.stream(items).filter((e) -> {
                 return currentTime < e.executeTime;
             }).toList();
@@ -116,6 +109,11 @@ public class Scheduler {
         }
     }
 
+    /**
+     * Starts and manages the lifecycle of a ScheduledCommand.
+     * @param command The command to execute.
+     * @return A CancelablePromise that can cancel the command.
+     */
     CancelablePromise runCommand(ScheduledCommand command) {
         command.start();
         var checkAndStop = new Container<Lambda>(null);
@@ -129,14 +127,17 @@ public class Scheduler {
         });
         checkAndStop.val = () -> {
             if (command.isComplete()) {
-                cancel.run();
-                command.end();
-                prom.resolve();
+                cancel.run(); // Cancel the tick registration.
+                command.end(); // End the command.
+                prom.resolve(); // Resolve the promise.
             }
         };
         return prom;
     }
 
+    /**
+     * Clears all scheduled items from the scheduler.
+     */
     public void clear() {
         items = new ScheduleItem[0];
     }
