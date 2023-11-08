@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.PS4Controller;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.robot.Auto.Drive.AutonomousDrive;
+import frc.robot.Auto.Drive.RobotPosition;
 import frc.robot.Components.ArmExtender;
 import frc.robot.Components.ArmExtenderAntiGrav;
 import frc.robot.Components.ArmLifter;
@@ -22,8 +24,12 @@ import frc.robot.Devices.Imu;
 import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
+import frc.robot.Util.CancelablePromise;
 import frc.robot.Util.Container;
+import frc.robot.Util.Lambda;
 import frc.robot.Util.PDConstant;
+import frc.robot.Util.PDController;
+import frc.robot.Util.Promise;
 import frc.robot.Util.ScaleInput;
 import frc.robot.Util.Vector2;
 
@@ -77,8 +83,8 @@ public class Robot extends TimedRobot {
     var intakeMotor = new Falcon(61, true);
     var intakeAimer = new Falcon(33, true);
     var intake = new Intake(intakeAimer, intakeMotor);
-    var intakeAnglerController = new PDConstant(0.6, 0.6).withMagnitude(1);
-    this.intake = new IntakePD(intake, intakeAnglerController, 2, lifter);
+    var intakeAnglerController = new PDConstant(0.4, 0.6);
+    this.intake = new IntakePD(intake, intakeAnglerController, 2.8, lifter);
 
     // Drive
 
@@ -119,7 +125,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     scheduler.clear();
-
+    var angle = imu.getTurnAngle();
     drive.reset();
     drive.setAlignmentThreshold(0.15);
 
@@ -127,46 +133,16 @@ public class Robot extends TimedRobot {
     drive.setConstants(con);
 
     scheduler.registerTick(drive);
-
+    var pos =
     var goPD = new PDConstant(1, 4, 0.2).withMagnitude(0.3);
     var turnPD = new PDConstant(0.5, 0, 1.0).withMagnitude(0.3);
-    // var autoDrive = new AutonomousDrive(drive, goPD, turnPD);
-    // autoDrive.reset();
+    var position = new RobotPosition(, angle)
+    var autoDrive = new AutonomousDrive(drive, goPD, turnPD);
+    autoDrive.reset();
     // scheduler.registerTick(drive);
     // Promise.immediate().then(() -> {
     // return autoDrive.exec(
-    // new GoStraight(50, 100,90));
-    // });
-    angle = imu.getTurnAngle();
-    scheduler.registerTick((double dTime) -> {
-      // TODO: figure out why pink ps5 has inverted y axis (inverted below)
-      if (driveGone > 0 && ((imu.getTurnAngle() - angle < -1) || imu.getTurnAngle() - angle > 1)) {
-        if ((imu.getTurnAngle() - angle < -1)) {
-          drive.power(0, 90, -0.5);
-        } else {
-          drive.power(0, 90, 0.5);
-        }
-      } else if (driveGone <= 400) {
-        angle = imu.getTurnAngle();
-        drive.power(1, 90, 0);
-        driveGone += 1;
-      } else {
-        drive.power(0.01, 90, 0);
-      }
-
-      // Intake Angler
-
-    });
-
-    // }).then(() -> {
-    // return autoDrive.exec(
-    // new GoStraight(50, 20, 90));
-    // }).then(() -> {
-    // return autoDrive.exec(
-    // new GoStraight(50, 20, 180));
-    // }).then(() -> {
-    // return autoDrive.exec(
-    // new GoStraight(50, 20, 270));
+    // new GoStraight(50, 100, 90));
     // });
   }
 
@@ -186,20 +162,16 @@ public class Robot extends TimedRobot {
     drive.setAlignmentThreshold(0.7);
     scheduler.registerTick(drive);
 
-    LifterPD lifterPD = new LifterPD(lifter, new PDConstant(1.5, 1.5, 7.0));
-    var liftPreseting = new Container<Boolean>(false);
+    LifterPD lifterPD = new LifterPD(lifter, new PDConstant(1.5, 2, 7.0));
+    var liftPreseting = new Container<CancelablePromise>(null);
     var extenderPD = new ExtenderPD(extender, new PDConstant(2, 0.7, 4.0), lifter);
-    var armExtendPreseting = new Container<Boolean>(false);
+    var armExtendPreseting = new Container<CancelablePromise>(null);
 
-    // logging
-    // scheduler.setInterval(() -> {
-    // System.out.println("extender length: " + extender.getExtensionInches());
-    // }, 2);
+    imu.resetYaw();
 
-    var initialTurnAngle = imu.getTurnAngle();
+    intake.setIntakeAnglerTarget(-50);
 
-    intake.setIntakeAnglerTarget(-60);
-
+    var driveTurnController = new PDController(new PDConstant(0.13, 0.7, 6.0));
     scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
@@ -208,56 +180,58 @@ public class Robot extends TimedRobot {
       final var GO_CURVE_INTENSITY = 5;
 
       var goVoltage = ScaleInput.curve(goVec.getMagnitude() * 100, GO_CURVE_INTENSITY) * (12.0 / 100.0);
-      final var turnVoltage = ScaleInput.curve(con.getRightX() * 100, TURN_CURVE_INTENSITY) * (12.0 / 100.0);
+      var turnVoltage = ScaleInput.curve(con.getRightX() * 100, TURN_CURVE_INTENSITY) * (12.0 / 100.0);
+      if (con.getCrossButton())
+        turnVoltage = driveTurnController.solve(AngleMath.getDelta(180, imu.getTurnAngle()));
+      if (con.getCircleButton())
+        turnVoltage = driveTurnController.solve(AngleMath.getDelta(90, imu.getTurnAngle()));
 
       if (Math.abs(goVoltage) > 12) {
         goVoltage = 12 * Math.signum(goVoltage);
+      }
+
+      if (goVec.getMagnitude() > 0.05 || Math.abs(turnVoltage) > 0.05) {
+        drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(), turnVoltage);
+      } else {
+        drive.stopGoPower();
       }
 
       // Intake Angler
 
       // Intake
       if (con.getR1ButtonReleased())
-        intake.setIntakeVoltage(3);
+        intake.setIntakeVoltage(1);
       else if (con.getL1ButtonReleased())
-        intake.setIntakeVoltage(-3);
+        intake.setIntakeVoltage(-1);
       else if (con.getR1Button())
         intake.setIntakeVoltage(12);
       else if (con.getL1Button())
         intake.setIntakeVoltage(-12);
-      else
-        intake.setIntakeVoltage(0);
-
-      if (goVec.getMagnitude() > 0.05 || Math.abs(con.getRightX()) > 0.05) {
-        drive.power(goVoltage, goVec.getAngleDeg() - (imu.getTurnAngle() - initialTurnAngle), turnVoltage);
-      } else {
-        drive.stopGoPower();
-      }
 
       Double lifterTar = null;
       Double extenderTar = null;
 
-      if (con.getTriangleButton())
+      if (joystick.getRawButton(12))
         intake.setIntakeAnglerTarget(dTime * -200 + intake.getTargetAngle());
-      else if (con.getCrossButton())
+      else if (joystick.getRawButton(11))
         intake.setIntakeAnglerTarget(dTime * 200 + intake.getTargetAngle());
 
       if (joystick.getRawButtonPressed(3)) {
         lifterTar = 0.0;
       }
       if (joystick.getRawButtonPressed(5)) {
-        lifterTar = 40.0;
+        lifterTar = 45.0;
         extenderTar = 20.0;
         intake.setIntakeAnglerTarget(100);
       }
 
       if (joystick.getRawButtonPressed(4)) {
         extenderTar = 0.0;
-        intake.setIntakeAnglerTarget(-60);
+        intake.setIntakeAnglerTarget(-50);
       }
       if (joystick.getRawButtonPressed(6)) {
         extenderTar = 41.0;
-        lifterTar = 43.0;
+        lifterTar = 48.0;
         intake.setIntakeAnglerTarget(90);
       }
 
@@ -266,7 +240,7 @@ public class Robot extends TimedRobot {
       }
 
       if (joystick.getTriggerPressed()) {
-        extenderTar = 7.0;
+        extenderTar = 3.0;
         lifterTar = 80.0;
         intake.setIntakeAnglerTarget(-50);
       }
@@ -274,32 +248,34 @@ public class Robot extends TimedRobot {
       if (con.getR2ButtonPressed())
         intake.setIntakeAnglerTarget(90);
       else if (con.getL2ButtonPressed())
-        intake.setIntakeAnglerTarget(-60);
+        intake.setIntakeAnglerTarget(-50);
 
-      if (lifterTar != null && !liftPreseting.val) {
+      if (lifterTar != null) {
+        if (liftPreseting.val != null)
+          liftPreseting.val.cancel();
         lifterPD.setTarget(lifterTar);
-        liftPreseting.val = true;
-        scheduler.setTimeout(() -> {
-          liftPreseting.val = false;
+        liftPreseting.val = scheduler.setTimeout(() -> {
+          liftPreseting.val = null;
         }, 1.7);
       }
 
-      if (extenderTar != null && !armExtendPreseting.val) {
+      if (extenderTar != null) {
+        if (armExtendPreseting.val != null)
+          armExtendPreseting.val.cancel();
         extenderPD.forceSetTar(extender.getExtensionInches());
         extenderPD.setTarget(extenderTar);
-        armExtendPreseting.val = true;
-        scheduler.setTimeout(() -> {
-          armExtendPreseting.val = false;
+        armExtendPreseting.val = scheduler.setTimeout(() -> {
+          armExtendPreseting.val = null;
         }, 1.7);
       }
 
-      if (!liftPreseting.val)
+      if (liftPreseting.val == null)
         lifter.setVoltage(joystick.getY() * -4
             + LifterAntiGrav.calcLifterAntiGrav(lifter.getAngleDeg(), extender.getExtensionInches()));
       else
         lifterPD.tick(dTime);
 
-      if (!armExtendPreseting.val) {
+      if (armExtendPreseting.val == null) {
         final var joyPOV = AngleMath.conformAngle(joystick.getPOV());
         final var joyPOVy = Math.cos(Math.toDegrees(joyPOV));
         final double armAntiGravVoltage = ArmExtenderAntiGrav.getAntiGravVoltage(lifter.getAngleDeg());
