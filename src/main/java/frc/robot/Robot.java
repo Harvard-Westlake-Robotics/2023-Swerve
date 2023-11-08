@@ -66,10 +66,10 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     // Initialize input devices.
-    
+
     // Set up the PS4 controller to listen on USB port 0.
     this.con = new PS4Controller(0);
-    
+
     // Set up the joystick to listen on USB port 1.
     this.joystick = new Joystick(1);
 
@@ -77,13 +77,14 @@ public class Robot extends TimedRobot {
     this.imu = new Imu(18);
 
     // Initialize robot arm components.
-    
-    // Set up the motor controllers for the robot's arm lift, with inversion settings.
+
+    // Set up the motor controllers for the robot's arm lift, with inversion
+    // settings.
     var rightArmRaise = new Falcon(10, true); // Right motor is inverted.
-    var leftArmRaise = new Falcon(9, false);  // Left motor is not inverted.
+    var leftArmRaise = new Falcon(9, false); // Left motor is not inverted.
     // Create the lifter component for lifting the robot arm.
     this.lifter = new ArmLifter(leftArmRaise, rightArmRaise);
-    
+
     // Set up the motor controllers for extending the robot's arm.
     var extenderMotorLeft = new Falcon(34, false);
     var extenderMotorRight = new Falcon(13, true);
@@ -91,8 +92,8 @@ public class Robot extends TimedRobot {
     this.extender = new ArmExtender(extenderMotorLeft, extenderMotorRight);
 
     // Set up the motors for the intake mechanism.
-    var intakeMotor = new Falcon(61, true);   // Motor for intake movement.
-    var intakeAimer = new Falcon(33, true);   // Motor for intake positioning.
+    var intakeMotor = new Falcon(61, true); // Motor for intake movement.
+    var intakeAimer = new Falcon(33, true); // Motor for intake positioning.
     // Create the intake component with its motors and controller.
     var intake = new Intake(intakeAimer, intakeMotor);
     var intakeAnglerController = new PDConstant(0.4, 0.6);
@@ -100,13 +101,16 @@ public class Robot extends TimedRobot {
     this.intake = new IntakePD(intake, intakeAnglerController, 2.8, lifter);
 
     // Initialize drive system components.
-    
-    // Placeholder constants for the PD controller, likely to be replaced with tuned values.
+
+    // Placeholder constants for the PD controller, likely to be replaced with tuned
+    // values.
     var placeholderConstant = new PDConstant(0, 0);
 
-    // Set up the encoders and motors for the swerve modules on each corner of the robot.
-    // Each module has a turn motor, a drive motor, and an encoder to provide feedback.
-    
+    // Set up the encoders and motors for the swerve modules on each corner of the
+    // robot.
+    // Each module has a turn motor, a drive motor, and an encoder to provide
+    // feedback.
+
     // Swerve module in the back left position.
     var leftBackEncoder = new AbsoluteEncoder(21, 68.203125, true).offset(-90);
     var leftBackTurn = new Falcon(8, false);
@@ -136,76 +140,62 @@ public class Robot extends TimedRobot {
     var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
     // Integrate all swerve modules into the drive system.
-    // The PositionedDrive class controls the robot's movements using the swerve modules.
+    // The PositionedDrive class controls the robot's movements using the swerve
+    // modules.
     this.drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23, 23, () -> {
       // Lambda function to provide the current heading angle from the IMU.
       return AngleMath.toStandardPosAngle(this.imu.getTurnAngle());
     });
 
     // TODO: The actual dimensions of the robot need to be measured and configured.
-}
-
+  }
 
   @Override
-/**
- * This method is called once each time the robot enters autonomous mode.
- * It sets up the robot's autonomous systems and prepares it to execute pre-programmed instructions.
- */
-public void autonomousInit() {
-  // Clear any previously scheduled tasks in the scheduler.
-  scheduler.clear();
-  
-  // Retrieve the current orientation of the robot from the IMU.
-  var angle = imu.getTurnAngle();
-  
-  // Reset the drive system to a known state.
-  drive.reset();
-  
-  // Set a threshold for alignment. This value is used to determine when the robot is considered aligned.
-  drive.setAlignmentThreshold(0.15);
+  /**
+   * This method is called once each time the robot enters autonomous mode.
+   * It sets up the robot's autonomous systems and prepares it to execute
+   * pre-programmed instructions.
+   */
+  public void autonomousInit() {
+    // Clear any previously scheduled tasks in the scheduler.
+    scheduler.clear();
 
-  // Define the constants for the Proportional-Derivative (PD) controller.
-  var con = new PDConstant(0.1, 0.07);
-  
-  // Apply the PD constants to the drive system. These constants control how the robot moves during autonomous.
-  drive.setConstants(con);
+    // Reset the drive system to a known state.
+    drive.reset();
 
-  // Schedule the drive system to be updated regularly during autonomous mode.
-  scheduler.registerTick(drive);
+    // Set a threshold for alignment. This value is used to determine when the robot
+    // is considered aligned.
+    drive.setAlignmentThreshold(0.15);
 
-  // Initialize the IMU-based positioning system which tracks the robot's position and orientation.
-  var imusystem = new ImuDrivePositioning(imu, drive);
-  
-  // Create a positioning system object that uses data from the IMU system to provide position information.
-  var possystem = new PositioningSystem() {
-      public double getAngle(){
-          return imusystem.getAngle();
-      }
-      public Vector2 getAcceleration() {
-          return imusystem.getAcceleration();
-      }
-      public Vector2 getSpeed() {
-          return imusystem.getSpeed();
-      }
-      public Vector2 getPosition() {
-          return imusystem.getPosition();
-      }
-      public void zero() {
-          imusystem.zero();
-      }
-  };
+    // Define the constants for the Proportional-Derivative (PD) controller.
+    var con = new PDConstant(0.1, 0.07);
 
-  // Initialize the autonomous drive system, passing in the drive system and positioning system.
-  var autoDrive = new AutonomousDrive(drive, possystem, con, con);
-  
-  // Reset the autonomous drive system to start from the current position and orientation.
-  autoDrive.reset();
-  
-  // Schedule the IMU system and autonomous drive system to be updated regularly during autonomous mode.
-  scheduler.registerTick(imusystem);
-  scheduler.registerTick(autoDrive);
-}
+    // Apply the PD constants to the drive system. These constants control how the
+    // robot moves during autonomous.
+    drive.setConstants(con);
 
+    // Schedule the drive system to be updated regularly during autonomous mode.
+    scheduler.registerTick(drive);
+
+    // Initialize the IMU-based positioning system which tracks the robot's position
+    // and orientation.
+    var imusystem = new ImuDrivePositioning(imu, drive);
+
+    // Initialize the autonomous drive system, passing in the drive system and
+    // positioning system.
+    var autoDrive = new AutonomousDrive(drive, imusystem, con, con);
+
+    // Reset the autonomous drive system to start from the current position and
+    // orientation.
+    autoDrive.reset();
+
+    // Schedule the IMU system and autonomous drive system to be updated regularly
+    // during autonomous mode.
+    scheduler.registerTick(imusystem);
+    scheduler.registerTick(autoDrive);
+
+
+  }
 
   /** This function is called periodically during autonomous. */
   @Override
@@ -216,47 +206,50 @@ public void autonomousInit() {
   }
 
   @Override
-/**
- * This method is called once each time the robot enters teleoperated mode.
- * It is used to set up the robot for teleop control.
- */
-public void teleopInit() {
-  // Clear any remaining tasks from the scheduler to start fresh for teleop mode.
-  scheduler.clear();
+  /**
+   * This method is called once each time the robot enters teleoperated mode.
+   * It is used to set up the robot for teleop control.
+   */
+  public void teleopInit() {
+    // Clear any remaining tasks from the scheduler to start fresh for teleop mode.
+    scheduler.clear();
 
-  // Create new PD (Proportional-Derivative) constants for driving control.
-  var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
-  // Apply these constants to the drive system for teleop mode.
-  drive.setConstants(constants);
-  // Reset the drive system to clear any residual state.
-  drive.reset();
-  // Set an alignment threshold for precision driving control.
-  drive.setAlignmentThreshold(0.7);
-  // Register the drive system to receive periodic updates during teleop.
-  scheduler.registerTick(drive);
+    // Create new PD (Proportional-Derivative) constants for driving control.
+    var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
+    // Apply these constants to the drive system for teleop mode.
+    drive.setConstants(constants);
+    // Reset the drive system to clear any residual state.
+    drive.reset();
+    // Set an alignment threshold for precision driving control.
+    drive.setAlignmentThreshold(0.7);
+    // Register the drive system to receive periodic updates during teleop.
+    scheduler.registerTick(drive);
 
-  // Initialize the lifter PD (Proportional-Derivative) control system with constants.
-  LifterPD lifterPD = new LifterPD(lifter, new PDConstant(1.5, 2, 7.0));
-  // Create a container to potentially hold a future task for the lifter.
-  var liftPreseting = new Container<CancelablePromise>(null);
-  // Initialize the extender PD control system with constants.
-  var extenderPD = new ExtenderPD(extender, new PDConstant(2, 0.7, 4.0), lifter);
-  // Create a container to potentially hold a future task for the arm extender.
-  var armExtendPreseting = new Container<CancelablePromise>(null);
+    // Initialize the lifter PD (Proportional-Derivative) control system with
+    // constants.
+    LifterPD lifterPD = new LifterPD(lifter, new PDConstant(1.5, 2, 7.0));
+    // Create a container to potentially hold a future task for the lifter.
+    var liftPreseting = new Container<CancelablePromise>(null);
+    // Initialize the extender PD control system with constants.
+    var extenderPD = new ExtenderPD(extender, new PDConstant(2, 0.7, 4.0), lifter);
+    // Create a container to potentially hold a future task for the arm extender.
+    var armExtendPreseting = new Container<CancelablePromise>(null);
 
-  // Reset the IMU yaw angle to the current orientation as the new 'zero' angle.
-  imu.resetYaw();
+    // Reset the IMU yaw angle to the current orientation as the new 'zero' angle.
+    imu.resetYaw();
 
-  // Set the target angle for the intake mechanism.
-  intake.setIntakeAnglerTarget(-50);
+    // Set the target angle for the intake mechanism.
+    intake.setIntakeAnglerTarget(-50);
 
-  // Initialize a PD controller for controlling the robot's turning during teleop.
-  var driveTurnController = new PDController(new PDConstant(0.13, 0.7, 6.0));
-  // Register a new task that will run periodically to control the robot's driving.
-  // This lambda function will be executed during each teleop periodic call.
-  scheduler.registerTick((double dTime) -> {
+    // Initialize a PD controller for controlling the robot's turning during teleop.
+    var driveTurnController = new PDController(new PDConstant(0.13, 0.7, 6.0));
+    // Register a new task that will run periodically to control the robot's
+    // driving.
+    // This lambda function will be executed during each teleop periodic call.
+    scheduler.registerTick((double dTime) -> {
       // TODO: figure out why pink ps5 has inverted y axis (inverted below)
-      // Calculate the drive vector from the controller input, applying a curve for better control.
+      // Calculate the drive vector from the controller input, applying a curve for
+      // better control.
       var goVec = new Vector2(con.getLeftX(), -con.getLeftY());
 
       // Constants for curving the controller input for better control.
@@ -268,31 +261,123 @@ public void teleopInit() {
       var turnVoltage = ScaleInput.curve(con.getRightX() * 100, TURN_CURVE_INTENSITY) * (12.0 / 100.0);
       // If certain buttons are pressed, adjust the turn voltage accordingly.
       if (con.getCrossButton())
-          turnVoltage = driveTurnController.solve(AngleMath.getDelta(180, imu.getTurnAngle()));
+        turnVoltage = driveTurnController.solve(AngleMath.getDelta(180, imu.getTurnAngle()));
       if (con.getCircleButton())
-          turnVoltage = driveTurnController.solve(AngleMath.getDelta(90, imu.getTurnAngle()));
+        turnVoltage = driveTurnController.solve(AngleMath.getDelta(90, imu.getTurnAngle()));
 
       // Clamp the go voltage to the maximum allowed voltage.
       if (Math.abs(goVoltage) > 12) {
-          goVoltage = 12 * Math.signum(goVoltage);
+        goVoltage = 12 * Math.signum(goVoltage);
       }
 
       // If the magnitude is significant, send the power command to the drive system.
       if (goVec.getMagnitude() > 0.05 || Math.abs(turnVoltage) > 0.05) {
-          drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(), turnVoltage);
+        drive.power(goVoltage, goVec.getAngleDeg() - imu.getTurnAngle(), turnVoltage);
       } else {
-          // Otherwise, stop the robot.
-          drive.stopGoPower();
+        // Otherwise, stop the robot.
+        drive.stopGoPower();
       }
 
-      // Additional teleop control code for intake and arm mechanisms...
-      // ...
+ // Intake Angler
+
+      // Intake
+      if (con.getR1ButtonReleased())
+        intake.setIntakeVoltage(1);
+      else if (con.getL1ButtonReleased())
+        intake.setIntakeVoltage(-1);
+      else if (con.getR1Button())
+        intake.setIntakeVoltage(12);
+      else if (con.getL1Button())
+        intake.setIntakeVoltage(-12);
+
+      Double lifterTar = null;
+      Double extenderTar = null;
+
+      if (joystick.getRawButton(12))
+        intake.setIntakeAnglerTarget(dTime * -200 + intake.getTargetAngle());
+      else if (joystick.getRawButton(11))
+        intake.setIntakeAnglerTarget(dTime * 200 + intake.getTargetAngle());
+
+      if (joystick.getRawButtonPressed(3)) {
+        lifterTar = 0.0;
+      }
+      if (joystick.getRawButtonPressed(5)) {
+        lifterTar = 45.0;
+        extenderTar = 20.0;
+        intake.setIntakeAnglerTarget(100);
+      }
+
+      if (joystick.getRawButtonPressed(4)) {
+        extenderTar = 0.0;
+        intake.setIntakeAnglerTarget(-50);
+      }
+      if (joystick.getRawButtonPressed(6)) {
+        extenderTar = 41.0;
+        lifterTar = 48.0;
+        intake.setIntakeAnglerTarget(90);
+      }
+
+      if (joystick.getRawButtonPressed(2)) {
+        intake.setIntakeAnglerTarget(90);
+      }
+
+      if (joystick.getTriggerPressed()) {
+        extenderTar = 3.0;
+        lifterTar = 80.0;
+        intake.setIntakeAnglerTarget(-50);
+      }
+
+      if (con.getR2ButtonPressed())
+        intake.setIntakeAnglerTarget(90);
+      else if (con.getL2ButtonPressed())
+        intake.setIntakeAnglerTarget(-50);
+
+      if (lifterTar != null) {
+        if (liftPreseting.val != null)
+          liftPreseting.val.cancel();
+        lifterPD.setTarget(lifterTar);
+        liftPreseting.val = scheduler.setTimeout(() -> {
+          liftPreseting.val = null;
+        }, 1.7);
+      }
+
+      if (extenderTar != null) {
+        if (armExtendPreseting.val != null)
+          armExtendPreseting.val.cancel();
+        extenderPD.forceSetTar(extender.getExtensionInches());
+        extenderPD.setTarget(extenderTar);
+        armExtendPreseting.val = scheduler.setTimeout(() -> {
+          armExtendPreseting.val = null;
+        }, 1.7);
+      }
+
+      if (liftPreseting.val == null)
+        lifter.setVoltage(joystick.getY() * -4
+            + LifterAntiGrav.calcLifterAntiGrav(lifter.getAngleDeg(), extender.getExtensionInches()));
+      else
+        lifterPD.tick(dTime);
+
+      if (armExtendPreseting.val == null) {
+        final var joyPOV = AngleMath.conformAngle(joystick.getPOV());
+        final var joyPOVy = Math.cos(Math.toDegrees(joyPOV));
+        final double armAntiGravVoltage = ArmExtenderAntiGrav.getAntiGravVoltage(lifter.getAngleDeg());
+        if (joyPOV == -1) {
+          extender.setVoltage(0 + armAntiGravVoltage);
+        } else {
+          if (joyPOVy < 0) {
+            extender.setVoltage(joyPOVy * 2 + armAntiGravVoltage);
+          } else {
+            extender.setVoltage(joyPOVy * 3 + armAntiGravVoltage);
+          }
+        }
+      } else {
+        extenderPD.tick(dTime);
+      }
+    });
 
       // Register the intake system to receive periodic updates during teleop.
       scheduler.registerTick(intake);
-  });
-}
-
+  }
 
   /** This function is called periodically during operator control. */
   @Override

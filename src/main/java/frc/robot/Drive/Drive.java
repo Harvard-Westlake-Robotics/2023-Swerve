@@ -157,7 +157,38 @@ public class Drive implements Tickable {
 
     // Updates the swerve modules each tick based on the targets set by the power method.
     public void tick(double dTime) {
-        // Logic for updating the swerve module targets and applying the PD control based on alignment.
-        // ... Tick update logic can be implemented here.
+        double error = 0;
+        double total = 0;
+        if (moduleTargets != null) {
+            int quadrant = 1;
+            for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
+                final var tar = moduleTargets[quadrant - 1];
+                error += tar.getMagnitude()
+                        * (Math.abs(AngleMath.getDeltaReversable(module.getAngle(), tar.getAngleDeg()))
+                                / 90.0);
+                total += tar.getMagnitude();
+                quadrant++;
+            }
+        }
+
+        int quadrant = 1;
+        for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
+            if (moduleTargets != null) {
+                var vec = moduleTargets[quadrant - 1];
+                if (error / total < 1 - alignmentThreshold) {
+                    module.setGoVoltage(vec.getMagnitude());
+                } else {
+                    module.setGoVoltage(0);
+                }
+                module.setTurnTarget(vec.getTurnAngleDeg());
+            } else {
+                module.setGoVoltage(0);
+            }
+            quadrant++;
+        }
+        frontLeft.tick(dTime);
+        frontRight.tick(dTime);
+        backLeft.tick(dTime);
+        backRight.tick(dTime);
     }
 }
