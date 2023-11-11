@@ -48,7 +48,7 @@ public class AutonomousDrive implements Tickable {
      *
      * @param target The target position as a 2D vector.
      */
-    void setTarget(Vector2 target) {
+    public void setTarget(Vector2 target) {
         targetX = target.x;
         targetY = target.y;
     }

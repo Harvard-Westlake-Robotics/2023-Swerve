@@ -51,7 +51,6 @@ public class LERP implements Tickable {
         // If the target value is not set, there's nothing to interpolate, so exit.
         if (tar == null)
             return;
-        
         // Calculate the change needed to move 'val' closer to 'tar'.
         val += Math.signum(tar - val) * Math.min(Math.abs(rate * dTime), Math.abs(tar - val));
         // 'Math.signum(tar - val)' determines the direction of the change.

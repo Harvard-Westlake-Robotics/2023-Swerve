@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Auto.Drive.AutonomousDrive;
-import frc.robot.Auto.Drive.RobotPosition;
 import frc.robot.Components.ArmExtender;
 import frc.robot.Components.ArmExtenderAntiGrav;
 import frc.robot.Components.ArmLifter;
@@ -26,7 +25,6 @@ import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.CancelablePromise;
 import frc.robot.Util.Container;
-import frc.robot.Util.Lambda;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Promise;
@@ -139,6 +137,7 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
+
     // Integrate all swerve modules into the drive system.
     // The PositionedDrive class controls the robot's movements using the swerve
     // modules.
@@ -167,12 +166,12 @@ public class Robot extends TimedRobot {
     // is considered aligned.
     drive.setAlignmentThreshold(0.15);
 
-    // Define the constants for the Proportional-Derivative (PD) controller.
-    var con = new PDConstant(0.1, 0.07);
+    var goCon = new PDConstant(0.1, 0.07);
+    var turnCon = new PDConstant(0.1, 0.07);
 
     // Apply the PD constants to the drive system. These constants control how the
     // robot moves during autonomous.
-    drive.setConstants(con);
+    drive.setConstants(goCon);
 
     // Schedule the drive system to be updated regularly during autonomous mode.
     scheduler.registerTick(drive);
@@ -183,7 +182,7 @@ public class Robot extends TimedRobot {
 
     // Initialize the autonomous drive system, passing in the drive system and
     // positioning system.
-    var autoDrive = new AutonomousDrive(drive, imusystem, con, con);
+    var autoDrive = new AutonomousDrive(drive, imusystem, goCon, turnCon);
 
     // Reset the autonomous drive system to start from the current position and
     // orientation.
@@ -193,6 +192,12 @@ public class Robot extends TimedRobot {
     // during autonomous mode.
     scheduler.registerTick(imusystem);
     scheduler.registerTick(autoDrive);
+
+    final Vector2 TT = new Vector2(0, 10);
+    Promise.immediate().then(() -> scheduler.registerTick((double dTime) -> {
+      TT.x += dTime;
+      autoDrive.setTarget(TT);
+    }));
 
 
   }
