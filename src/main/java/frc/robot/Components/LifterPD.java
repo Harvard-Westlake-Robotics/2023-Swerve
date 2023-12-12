@@ -25,7 +25,7 @@ public class LifterPD implements Tickable {
 
     // Method to set the target position for the lifter. The target is a value that the lifter should reach.
     public void setTarget(double tar) {
-        target.set(tar);
+        target.set(tar - 4.5);
     }
 
     // The tick method is called periodically and is used to update the control system.

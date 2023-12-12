@@ -20,7 +20,18 @@ class ScheduleItem {
 }
 
 public class Scheduler {
-    private ScheduleItem[] items = new ScheduleItem[] {}; // Array to hold scheduled items.
+    private static Scheduler instance;
+    private ScheduleItem[] items; // Array to hold scheduled items.
+
+    public static Scheduler getInstance(){
+        if (instance == null)
+            instance = new Scheduler();
+        return instance;
+    }
+
+    private Scheduler() {
+        items = new ScheduleItem[0];
+    }
 
     /**
      * Registers a Tickable object to be called every tick.
@@ -82,6 +93,10 @@ public class Scheduler {
         return prom.val;
     }
 
+    public Promise timeout(double sec) {
+        return setTimeout(() -> {}, sec);
+    }
+
     /**
      * Processes all scheduled items and executes those whose time has come.
      */
@@ -114,7 +129,7 @@ public class Scheduler {
      * @param command The command to execute.
      * @return A CancelablePromise that can cancel the command.
      */
-    CancelablePromise runCommand(ScheduledCommand command) {
+    public CancelablePromise runCommand(ScheduledCommand command) {
         command.start();
         var checkAndStop = new Container<Lambda>(null);
         var prom = new CancelablePromise(() -> {
@@ -122,6 +137,8 @@ public class Scheduler {
             checkAndStop.val.run();
         });
         var cancel = registerTick((double dT) -> {
+            if (checkAndStop.val == null)
+                return;
             command.tick(dT);
             checkAndStop.val.run();
         });

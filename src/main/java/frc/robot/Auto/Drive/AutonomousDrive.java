@@ -1,10 +1,8 @@
 package frc.robot.Auto.Drive;
 
-import frc.robot.Auto.Positioning.Position;
 import frc.robot.Auto.Positioning.PositioningSystem;
 import frc.robot.Drive.PositionedDrive;
 import frc.robot.Util.AngleMath;
-import frc.robot.Util.CancelablePromise;
 import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
@@ -12,15 +10,15 @@ import frc.robot.Util.Tickable;
 import frc.robot.Util.Vector2;
 
 public class AutonomousDrive implements Tickable {
-    PositionedDrive drive;  // The drive system of the robot.
-    PDController xController;  // PID controller for x-axis motion.
-    PDController yController;  // PID controller for y-axis motion.
-    PDController turnController;  // PID controller for rotational motion.
-    PositioningSystem pos;  // Positioning system that provides current robot position and angle.
+    PositionedDrive drive; // The drive system of the robot.
+    PDController xController; // PID controller for x-axis motion.
+    PDController yController; // PID controller for y-axis motion.
+    PDController turnController; // PID controller for rotational motion.
+    PositioningSystem pos; // Positioning system that provides current robot position and angle.
 
-    double targetX;  // Target x-coordinate for autonomous movement.
-    double targetY;  // Target y-coordinate for autonomous movement.
-    double targetAngle; // Target angle for autonomous rotation.
+    public double targetX; // Target x-coordinate for autonomous movement.
+    public double targetY; // Target y-coordinate for autonomous movement.
+    public double targetAngle; // Target angle for autonomous rotation.
 
     /**
      * Constructor for autonomous drive system.
@@ -31,7 +29,7 @@ public class AutonomousDrive implements Tickable {
      * @param turnConstants The PID constants for rotational movement.
      */
     public AutonomousDrive(PositionedDrive drive, PositioningSystem pos, PDConstant goConstants,
-                           PDConstant turnConstants) {
+            PDConstant turnConstants) {
         this.drive = drive;
         this.pos = pos;
         this.xController = new PDController(goConstants);
@@ -84,16 +82,18 @@ public class AutonomousDrive implements Tickable {
                 .solve(AngleMath.getDelta(AngleMath.toTurnAngle(pos.getAngle()), targetAngle));
 
         // Adjust the correction vectors for the robot's current orientation.
-        Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-AngleMath.toTurnAngle(pos.getAngle()));
+        Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-pos.getAngle());
 
         // Periodically print debugging information to the console.
         deSpam.exec(() -> {
             System.out.println("targetX: " + targetX + ", currentX: " + pos.getPosition().x);
-            // Debugging information for targetY, currentY, targetAngle, and currentAngle can be added here.
+            // Debugging information for targetY, currentY, targetAngle, and currentAngle
+            // can be added here.
             System.out.println(goCorrect.getTurnAngleDeg());
         });
 
-        // Apply the power if the error is within acceptable bounds, otherwise stop the robot.
+        // Apply the power if the error is within acceptable bounds, otherwise stop the
+        // robot.
         if (2 < turnController.getLastError() / 3 + xController.getLastError() + yController.getLastError())
             drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect, false);
         else

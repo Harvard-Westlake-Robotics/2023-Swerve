@@ -8,7 +8,7 @@ import frc.robot.Core.Scheduler;
  * RobotPolicy to define behavior across different robot modes.
  */
 public abstract class BetterRobot extends Robot {
-    private final Scheduler scheduler = new Scheduler(); // Scheduler to manage timed tasks.
+    private final Scheduler scheduler = Scheduler.getInstance(); // Scheduler to manage timed tasks.
     RobotPolicy policy; // Policy that defines the robot's behavior in different modes.
 
     /**

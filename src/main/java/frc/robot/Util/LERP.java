@@ -17,6 +17,10 @@ public class LERP implements Tickable {
         this.rate = rate;
     }
 
+    public boolean isInitialized() {
+        return tar != null;
+    }
+
     /**
      * Retrieves the current value of the interpolation.
      *

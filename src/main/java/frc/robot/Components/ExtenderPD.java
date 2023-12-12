@@ -11,7 +11,7 @@ import frc.robot.Util.Tickable;
 public class ExtenderPD implements Tickable {
     private ArmExtender extender; // The mechanical extender component that is being controlled
     private ArmLifter lifter; // The lifter component that may interact with the extender
-    private LERP target = new LERP(30); // A linear interpolation object to smooth the transition to the target
+    private LERP target = new LERP(20); // A linear interpolation object to smooth the transition to the target
     private PDController con; // The PD (Proportional-Derivative) controller for precision control of the extender
 
     // Constructor initializing the extender, PDController with constants, and lifter. It also sets the initial target to 0.

@@ -3,20 +3,26 @@ package frc.robot.Devices.Motor;
 import com.ctre.phoenixpro.configs.CurrentLimitsConfigs;
 import com.ctre.phoenixpro.hardware.TalonFX;
 
+import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AnyMotor;
+import frc.robot.Util.GetDTime;
+import frc.robot.Util.LERP;
+import frc.robot.Util.Tickable;
 
 /**
  * The Falcon class extends the AnyMotor abstract class to provide an interface
  * to control a Talon FX motor controller (also known as a Falcon 500).
  */
 public class Falcon extends AnyMotor {
+    private Scheduler scheduler = Scheduler.getInstance();
     private TalonFX falcon; // The Talon FX motor controller object.
-    double stallVolt;       // The voltage at which the motor is considered to be stalling.
+    double stallVolt; // The voltage at which the motor is considered to be stalling.
 
-    final int id;           // Unique identifier for the motor controller.
+    final int id; // Unique identifier for the motor controller.
 
     /**
      * Retrieves the ID of the motor controller.
+     * 
      * @return The CAN ID of the motor controller.
      */
     public int getID() {
@@ -25,6 +31,7 @@ public class Falcon extends AnyMotor {
 
     /**
      * Sets the current limit for the motor.
+     * 
      * @param amps The maximum current in Amperes.
      */
     public void setCurrentLimit(int amps) {
@@ -36,9 +43,11 @@ public class Falcon extends AnyMotor {
 
     /**
      * Constructor for the Falcon motor controller.
+     * 
      * @param deviceNumber The CAN ID for the motor controller.
-     * @param isReversed Indicates whether the motor output should be reversed.
-     * @param isStallable Indicates whether the motor should have stall voltage applied.
+     * @param isReversed   Indicates whether the motor output should be reversed.
+     * @param isStallable  Indicates whether the motor should have stall voltage
+     *                     applied.
      */
     public Falcon(int deviceNumber, boolean isReversed, boolean isStallable) {
         super(isReversed);
@@ -51,9 +60,11 @@ public class Falcon extends AnyMotor {
     }
 
     /**
-     * Overloaded constructor for the Falcon motor controller without stallable parameter.
+     * Overloaded constructor for the Falcon motor controller without stallable
+     * parameter.
+     * 
      * @param deviceNumber The CAN ID for the motor controller.
-     * @param isReversed Indicates whether the motor output should be reversed.
+     * @param isReversed   Indicates whether the motor output should be reversed.
      */
     public Falcon(int deviceNumber, boolean isReversed) {
         this(deviceNumber, isReversed, false);
@@ -61,9 +72,22 @@ public class Falcon extends AnyMotor {
 
     /**
      * Sets the voltage output of the motor, taking into account stall voltage.
+     * 
      * @param volts The desired voltage.
      */
     protected void uSetVoltage(double volts) {
+        var sinceTimeoutChecked = sinceCheckedTimeout.tick();
+        // checks for motor disconnect
+        if (!enabledLerp.isInitialized())
+            enabledLerp.set(1);
+        enabledLerp.set(falcon.isAlive() ? 1 : 0);
+        enabledLerp.tick(sinceTimeoutChecked);
+        enabled = enabledLerp.get() > 0.5;
+        // sends voltages
+        if (!enabled) {
+            falcon.setVoltage(0);
+            return;
+        }
         double fac = (volts > 0) ? 1 : -1; // Determine the direction of the voltage.
         if (Math.abs(volts) < stallVolt / 2) {
             falcon.setVoltage(0); // If voltage is below half stall, turn off motor.
@@ -78,6 +102,7 @@ public class Falcon extends AnyMotor {
 
     /**
      * Retrieves the number of revolutions from the motor's integrated sensor.
+     * 
      * @return The position of the encoder in revolutions.
      */
     protected double uGetRevs() {
@@ -90,4 +115,8 @@ public class Falcon extends AnyMotor {
     public void stop() {
         falcon.stopMotor();
     }
+
+    boolean enabled = true;
+    LERP enabledLerp = new LERP(0.01);
+    GetDTime sinceCheckedTimeout = new GetDTime();
 }

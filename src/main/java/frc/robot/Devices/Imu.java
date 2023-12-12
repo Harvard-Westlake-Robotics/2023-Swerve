@@ -60,4 +60,8 @@ public class Imu {
     public void resetYaw() {
         imu.setYaw(0); // Reset the yaw angle to 0 degrees.
     }
+
+    public void setYaw(double val) {
+        imu.setYaw(val);
+    }
 }

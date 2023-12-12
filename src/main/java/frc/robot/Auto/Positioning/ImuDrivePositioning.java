@@ -33,20 +33,25 @@ public class ImuDrivePositioning implements PositioningSystem, Tickable {
         return drive.getPosition();
     }
 
-    // Calculates and returns the current speed as a 2D vector using the position history.
+    // Calculates and returns the current speed as a 2D vector using the position
+    // history.
     @Override
     public Vector2 getSpeed() {
         return new Vector2(x.getSpeed(), y.getSpeed());
     }
 
-    // Calculates and returns the current acceleration as a 2D vector using the position history.
-    // Note: It seems there might be a mistake here as it only uses the x.getAcceleration() for both vector components.
+    // Calculates and returns the current acceleration as a 2D vector using the
+    // position history.
+    // Note: It seems there might be a mistake here as it only uses the
+    // x.getAcceleration() for both vector components.
     @Override
     public Vector2 getAcceleration() {
-        return new Vector2(x.getAcceleration(), y.getAcceleration()); // Corrected to use y.getAcceleration() for the y component
+        return new Vector2(x.getAcceleration(), y.getAcceleration()); // Corrected to use y.getAcceleration() for the y
+                                                                      // component
     }
 
-    // The tick method is called periodically and updates the position and angle histories with the latest data.
+    // The tick method is called periodically and updates the position and angle
+    // histories with the latest data.
     @Override
     public void tick(double secsSinceLastTick) {
         x.addPos(getPosition().x); // Adds the current x position to the history
@@ -54,7 +59,8 @@ public class ImuDrivePositioning implements PositioningSystem, Tickable {
         angle.addPos(getAngle()); // Adds the current angle to the history
     }
 
-    // Resets the position and angle histories, effectively zeroing the positioning system.
+    // Resets the position and angle histories, effectively zeroing the positioning
+    // system.
     @Override
     public void zero() {
         x.reset();

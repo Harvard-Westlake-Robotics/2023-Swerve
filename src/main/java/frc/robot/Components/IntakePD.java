@@ -14,7 +14,7 @@ public class IntakePD implements Tickable {
     ArmExtender extender; // Unused in this snippet, presumably controls the extension of the arm
     PDController angController; // PD controller for the intake angle
     double antiGravIntensity; // Intensity of the anti-gravity compensation
-    LERP intakeAnglerTarget = new LERP(500); // LERP target for the intake angle
+    LERP intakeAnglerTarget = new LERP(300); // LERP target for the intake angle
 
     // Constructor for the IntakePD class
     public IntakePD(Intake intake, PDConstant anglerConstant, double antiGravIntensity, ArmLifter lifter) {
@@ -47,6 +47,10 @@ public class IntakePD implements Tickable {
     // Reset the encoder for the intake angler to zero
     public void resetAnglerEncoder() {
         intake.resetAnglerEncoder();
+    }
+
+    public double getAngle() {
+        return intake.getAnglerPositionDeg();
     }
 
     // Instantiate a DeSpam utility, which is used to limit the frequency of certain operations (unused in this snippet)

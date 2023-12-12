@@ -17,6 +17,7 @@ import frc.robot.Components.Intake;
 import frc.robot.Components.IntakePD;
 import frc.robot.Components.LifterAntiGrav;
 import frc.robot.Components.LifterPD;
+import frc.robot.Core.ScheduledTask;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.Imu;
@@ -25,12 +26,14 @@ import frc.robot.Drive.*;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.CancelablePromise;
 import frc.robot.Util.Container;
+import frc.robot.Util.DSAController;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Promise;
 import frc.robot.Util.ScaleInput;
 import frc.robot.Util.Vector2;
 import frc.robot.Auto.Positioning.*;
+import frc.robot.Util.GetDTime;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -45,7 +48,7 @@ public class Robot extends TimedRobot {
   // Variable for testing mode. Set to 'true' during testing phase.
   final boolean testing = false;
   // Scheduler object for managing periodic tasks
-  Scheduler scheduler = new Scheduler();
+  Scheduler scheduler = Scheduler.getInstance();
   // Controller objects for receiving input from PS4 controller and joystick
   PS4Controller con;
   Joystick joystick;
@@ -73,6 +76,7 @@ public class Robot extends TimedRobot {
 
     // Set up the Inertial Measurement Unit (IMU) on port 18.
     this.imu = new Imu(18);
+    imu.setYaw(180);
 
     // Initialize robot arm components.
 
@@ -82,6 +86,7 @@ public class Robot extends TimedRobot {
     var leftArmRaise = new Falcon(9, false); // Left motor is not inverted.
     // Create the lifter component for lifting the robot arm.
     this.lifter = new ArmLifter(leftArmRaise, rightArmRaise);
+    lifter.resetPos();
 
     // Set up the motor controllers for extending the robot's arm.
     var extenderMotorLeft = new Falcon(34, false);
@@ -137,7 +142,6 @@ public class Robot extends TimedRobot {
     var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
     var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
-
     // Integrate all swerve modules into the drive system.
     // The PositionedDrive class controls the robot's movements using the swerve
     // modules.
@@ -162,16 +166,16 @@ public class Robot extends TimedRobot {
     // Reset the drive system to a known state.
     drive.reset();
 
-    // Set a threshold for alignment. This value is used to determine when the robot
+    // Set a threshold for alignment. This value is used to determine when the
+    // robbor
     // is considered aligned.
-    drive.setAlignmentThreshold(0.15);
+    drive.setAlignmentThreshold(0.5);
 
-    var goCon = new PDConstant(0.1, 0.07);
-    var turnCon = new PDConstant(0.1, 0.07);
+    var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
 
     // Apply the PD constants to the drive system. These constants control how the
     // robot moves during autonomous.
-    drive.setConstants(goCon);
+    drive.setConstants(constants);
 
     // Schedule the drive system to be updated regularly during autonomous mode.
     scheduler.registerTick(drive);
@@ -182,24 +186,84 @@ public class Robot extends TimedRobot {
 
     // Initialize the autonomous drive system, passing in the drive system and
     // positioning system.
-    var autoDrive = new AutonomousDrive(drive, imusystem, goCon, turnCon);
+    // var autoDrive = new AutonomousDrive(drive, imusystem, goCon, turnCon);
 
     // Reset the autonomous drive system to start from the current position and
     // orientation.
-    autoDrive.reset();
+    // autoDrive.reset();
 
     // Schedule the IMU system and autonomous drive system to be updated regularly
     // during autonomous mode.
     scheduler.registerTick(imusystem);
-    scheduler.registerTick(autoDrive);
 
-    final Vector2 TT = new Vector2(0, 10);
-    Promise.immediate().then(() -> scheduler.registerTick((double dTime) -> {
-      TT.x += dTime;
-      autoDrive.setTarget(TT);
-    }));
+    LifterPD lifterPD = new LifterPD(lifter, new PDConstant(1.5, 2, 7.0));
+    var extenderPD = new ExtenderPD(extender, new PDConstant(2, 0.7, 4.0), lifter);
 
+    lifterPD.setTarget(0);
+    scheduler.registerTick(lifterPD);
+    extenderPD.forceSetTar(0);
+    scheduler.registerTick(extenderPD);
+    intake.setIntakeAnglerTarget(intake.getAngle());
+    scheduler.registerTick(intake);
 
+    var extenderTar = 41.0;
+    var lifterTar = 48.0;
+
+    lifterPD.setTarget(lifterTar);
+    scheduler.setTimeout(() -> {
+      extenderPD.setTarget(extenderTar);
+      intake.setIntakeAnglerTarget(90);
+    }, 2)
+        .then(() -> {
+          return scheduler.setTimeout(() -> {
+            intake.setIntakeVoltage(-12);
+          }, 2);
+        })
+        .then(() -> {
+          return scheduler.setTimeout(() -> {
+            intake.setIntakeAnglerTarget(-60);
+            extenderPD.setTarget(0);
+            intake.setIntakeVoltage(0);
+          }, 3);
+        })
+        .then(() -> scheduler.timeout(1))
+        .then(() -> {
+          lifterPD.setTarget(0);
+          return scheduler.timeout(1);
+        });
+        // .then(() -> {
+        //   scheduler.registerTick((dTime) -> {
+        //     var shouldgo = true;
+        //     if (Math.abs(drive.getPosition().x) > 6)
+        //       shouldgo = false;
+        //     if (drive.getPosition().y > 135 || drive.getPosition().y < 0)
+        //       shouldgo = false;
+        //     if (shouldgo) {
+        //       drive.power(4, 0, 0);
+        //     } else {
+        //       drive.power(0, 0, 0);
+        //     }
+        //   });
+        // });
+        // // .then(() -> {
+        // //   var dTimeGet = new GetDTime();
+        // //   var distSoFar = new Container<Double>(0.0);
+        // //   return scheduler.runCommand(new ScheduledTask(null, (c) -> {
+        // //     var dTime = dTimeGet.tick();
+
+        // //     var movement = dTime * 2;
+        // //     autoDrive.targetY += movement;
+        // //     distSoFar.val += movement;
+
+        // //     if (distSoFar.val > 70)
+        // //       c.run();
+        // //   }, null));
+        // // }).then(() -> {
+        // //   var con = new DSAController(0.1, -0.3, 0.2, 2.4);
+        // //   scheduler.registerTick((double dTime) -> {
+
+        // //   });
+        // // });
   }
 
   /** This function is called periodically during autonomous. */
@@ -216,6 +280,12 @@ public class Robot extends TimedRobot {
    * It is used to set up the robot for teleop control.
    */
   public void teleopInit() {
+    testInit();
+    testPeriodic();
+    testExit();
+    disabledInit();
+    disabledPeriodic();
+    disabledExit();
     // Clear any remaining tasks from the scheduler to start fresh for teleop mode.
     scheduler.clear();
 
@@ -239,9 +309,6 @@ public class Robot extends TimedRobot {
     var extenderPD = new ExtenderPD(extender, new PDConstant(2, 0.7, 4.0), lifter);
     // Create a container to potentially hold a future task for the arm extender.
     var armExtendPreseting = new Container<CancelablePromise>(null);
-
-    // Reset the IMU yaw angle to the current orientation as the new 'zero' angle.
-    imu.resetYaw();
 
     // Set the target angle for the intake mechanism.
     intake.setIntakeAnglerTarget(-50);
@@ -283,7 +350,7 @@ public class Robot extends TimedRobot {
         drive.stopGoPower();
       }
 
- // Intake Angler
+      // Intake Angler
 
       // Intake
       if (con.getR1ButtonReleased())
@@ -380,8 +447,8 @@ public class Robot extends TimedRobot {
       }
     });
 
-      // Register the intake system to receive periodic updates during teleop.
-      scheduler.registerTick(intake);
+    // Register the intake system to receive periodic updates during teleop.
+    scheduler.registerTick(intake);
   }
 
   /** This function is called periodically during operator control. */

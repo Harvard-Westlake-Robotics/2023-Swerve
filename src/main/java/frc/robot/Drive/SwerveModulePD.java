@@ -6,18 +6,18 @@ import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Tickable;
 
-
 /**
- * The SwerveModulePD class is responsible for controlling a single swerve module
+ * The SwerveModulePD class is responsible for controlling a single swerve
+ * module
  * using a Proportional-Derivative (PD) control loop. It adjusts the orientation
  * of the module based on a target angle and controls the wheel speed.
  */
 public class SwerveModulePD implements Tickable {
-    SwerveModule swerve;    // The swerve module being controlled.
+    SwerveModule swerve; // The swerve module being controlled.
     PDController controller;// The PD controller for the module's turning mechanism.
-    AbsoluteEncoder coder;  // The encoder that measures the module's current angle.
+    AbsoluteEncoder coder; // The encoder that measures the module's current angle.
 
-    public double error;    // The current error between the target and actual angles.
+    public double error; // The current error between the target and actual angles.
 
     /**
      * Sets the PD constants for the controller.
@@ -29,7 +29,8 @@ public class SwerveModulePD implements Tickable {
     }
 
     /**
-     * Constructs a SwerveModulePD with a swerve module, control constants, and an encoder.
+     * Constructs a SwerveModulePD with a swerve module, control constants, and an
+     * encoder.
      *
      * @param swerve The swerve module to control.
      * @param con    The PD constants for controlling the module.
@@ -41,7 +42,7 @@ public class SwerveModulePD implements Tickable {
         this.coder = coder;
     }
 
-    Double turnTarget = null;  // The target angle for the module's turning.
+    Double turnTarget = null; // The target angle for the module's turning.
 
     /**
      * Updates the swerve module's control loop with the time since the last tick.
@@ -79,10 +80,11 @@ public class SwerveModulePD implements Tickable {
     }
 
     boolean frontFacing = true; // Indicates if the module is facing the front.
-    double voltage = 0;        // The voltage applied for driving the module.
+    double voltage = 0; // The voltage applied for driving the module.
 
     /**
-     * Sets the driving voltage for the module and applies it based on the current orientation.
+     * Sets the driving voltage for the module and applies it based on the current
+     * orientation.
      *
      * @param volts The voltage to set for driving the module.
      */
