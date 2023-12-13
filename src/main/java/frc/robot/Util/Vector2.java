@@ -1,7 +1,8 @@
 package frc.robot.Util;
 
 /**
- * Vector2 represents a mathematical 2-dimensional vector with x and y components.
+ * Vector2 represents a mathematical 2-dimensional vector with x and y
+ * components.
  * This class provides various utility methods for vector operations.
  */
 public class Vector2 {
@@ -12,19 +13,20 @@ public class Vector2 {
     /**
      * Constructs a vector given an angle and magnitude.
      *
-     * @param angle The angle in degrees.
+     * @param angle     The angle in degrees.
      * @param magnitude The magnitude of the vector.
      * @return A new Vector2 object with the specified angle and magnitude.
      */
     public static Vector2 fromAngleAndMag(double angle, double magnitude) {
-        return new Vector2(angle).multiply(magnitude);
+        return fromAngle(angle).multiply(magnitude);
     }
 
     /**
      * Sets the magnitude of the vector, keeping its direction.
      *
      * @param magnitude The new magnitude.
-     * @return A new Vector2 object with the original direction and the new magnitude.
+     * @return A new Vector2 object with the original direction and the new
+     *         magnitude.
      */
     public Vector2 withMagnitude(double magnitude) {
         double factor = magnitude / getMagnitude();
@@ -36,10 +38,11 @@ public class Vector2 {
      *
      * @param angle The angle in degrees.
      */
-    public Vector2(double angle) {
+    public static Vector2 fromAngle(double angle) {
         double radians = AngleMath.conformAngle(angle) / 360 * (2 * Math.PI);
-        x = Math.cos(radians);
-        y = Math.sin(radians);
+        var x = Math.cos(radians);
+        var y = Math.sin(radians);
+        return new Vector2(x, y);
     }
 
     /**

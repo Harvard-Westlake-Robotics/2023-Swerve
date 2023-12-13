@@ -31,6 +31,7 @@ import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.Promise;
 import frc.robot.Util.ScaleInput;
+import frc.robot.Util.Time;
 import frc.robot.Util.Vector2;
 import frc.robot.Auto.Positioning.*;
 import frc.robot.Util.GetDTime;
@@ -184,86 +185,47 @@ public class Robot extends TimedRobot {
     // and orientation.
     var imusystem = new ImuDrivePositioning(imu, drive);
 
+    var goCon = new PDConstant(0.1, 0);
+    var turnCon = new PDConstant(0.1, 0);
+
     // Initialize the autonomous drive system, passing in the drive system and
     // positioning system.
-    // var autoDrive = new AutonomousDrive(drive, imusystem, goCon, turnCon);
+    var autoDrive = new AutonomousDrive(drive, imusystem, goCon, turnCon);
 
-    // Reset the autonomous drive system to start from the current position and
-    // orientation.
-    // autoDrive.reset();
+    // TODO: DEFINE CONSTANTS
+    final var acceleration = 2.0;
+    final var maxVel = 10.0;
+    final var startPos = new Vector2(0, 0);
+    final var targetPos = new Vector2(10, 10);
+    final var directionVector = (targetPos.minus(startPos)).withMagnitude(1);
+    final var directDistance = targetPos.getMagnitude();
+    // Calculation for how long the robot would need to reach the destination
+    // ideally
+    final var totalTimeNeeded = directDistance / maxVel - maxVel / acceleration;
+    // Calculation for how long it would take the robot to reach maximum velocity
+    final var accelerationTime = maxVel / acceleration;
 
-    // Schedule the IMU system and autonomous drive system to be updated regularly
-    // during autonomous mode.
-    scheduler.registerTick(imusystem);
-
-    LifterPD lifterPD = new LifterPD(lifter, new PDConstant(1.5, 2, 7.0));
-    var extenderPD = new ExtenderPD(extender, new PDConstant(2, 0.7, 4.0), lifter);
-
-    lifterPD.setTarget(0);
-    scheduler.registerTick(lifterPD);
-    extenderPD.forceSetTar(0);
-    scheduler.registerTick(extenderPD);
-    intake.setIntakeAnglerTarget(intake.getAngle());
-    scheduler.registerTick(intake);
-
-    var extenderTar = 41.0;
-    var lifterTar = 48.0;
-
-    lifterPD.setTarget(lifterTar);
-    scheduler.setTimeout(() -> {
-      extenderPD.setTarget(extenderTar);
-      intake.setIntakeAnglerTarget(90);
-    }, 2)
-        .then(() -> {
-          return scheduler.setTimeout(() -> {
-            intake.setIntakeVoltage(-12);
-          }, 2);
-        })
-        .then(() -> {
-          return scheduler.setTimeout(() -> {
-            intake.setIntakeAnglerTarget(-60);
-            extenderPD.setTarget(0);
-            intake.setIntakeVoltage(0);
-          }, 3);
-        })
-        .then(() -> scheduler.timeout(1))
-        .then(() -> {
-          lifterPD.setTarget(0);
-          return scheduler.timeout(1);
-        });
-        // .then(() -> {
-        //   scheduler.registerTick((dTime) -> {
-        //     var shouldgo = true;
-        //     if (Math.abs(drive.getPosition().x) > 6)
-        //       shouldgo = false;
-        //     if (drive.getPosition().y > 135 || drive.getPosition().y < 0)
-        //       shouldgo = false;
-        //     if (shouldgo) {
-        //       drive.power(4, 0, 0);
-        //     } else {
-        //       drive.power(0, 0, 0);
-        //     }
-        //   });
-        // });
-        // // .then(() -> {
-        // //   var dTimeGet = new GetDTime();
-        // //   var distSoFar = new Container<Double>(0.0);
-        // //   return scheduler.runCommand(new ScheduledTask(null, (c) -> {
-        // //     var dTime = dTimeGet.tick();
-
-        // //     var movement = dTime * 2;
-        // //     autoDrive.targetY += movement;
-        // //     distSoFar.val += movement;
-
-        // //     if (distSoFar.val > 70)
-        // //       c.run();
-        // //   }, null));
-        // // }).then(() -> {
-        // //   var con = new DSAController(0.1, -0.3, 0.2, 2.4);
-        // //   scheduler.registerTick((double dTime) -> {
-
-        // //   });
-        // // });
+    var currentTime = new Container<>(0.0);
+    var currentDistance = new Container<>(0.0);
+    scheduler.registerTick((double dTime) -> {
+      currentTime.val += dTime;
+      // Depending on the time that has passed, determines the distance
+      // instantaneously for each segement of time. This is split up to three cases:
+      // 1. when robot is accelerating; 
+      // 2. robot at max velocity; 3. robot
+      // deaccelerating.
+      if (currentTime.val <= (accelerationTime)) {
+        currentDistance.val = 0.5 * acceleration * Math.pow(currentTime.val, 2);
+      } else if (currentTime.val <= totalTimeNeeded - accelerationTime) {
+        // Case for when we've reached max acceleration and aren't decelerating yet
+        currentDistance.val = maxVel * (currentTime.val - 0.5 * accelerationTime);
+      } else {
+        // Case for when we are decreasing acceleration from max acceleration
+        currentDistance.val = directDistance - 0.5 * Math.pow(totalTimeNeeded - currentTime.val, 2) * acceleration;
+      }
+      Vector2 currentVector = directionVector.multiply(currentDistance.val);
+      autoDrive.setTarget(currentVector);
+    });
   }
 
   /** This function is called periodically during autonomous. */
