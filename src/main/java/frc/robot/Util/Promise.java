@@ -21,4 +21,24 @@ public abstract class Promise {
             return returnPromise;
         }
     }
+
+    public static Promise all(Promise... proms) {
+        var resolved = new Container<Integer>(0);
+        var all = new SimplePromise();
+        for (var prom : proms) {
+            prom.then(() -> {
+                resolved.val++;
+                if (resolved.val == proms.length)
+                    all.resolve();
+            });
+        }
+        return all;
+    }
+
+    // Creates and resolves a promise immediately.
+    public static SimplePromise immediate() {
+        SimplePromise promise = new SimplePromise();
+        promise.resolve();
+        return promise;
+    }
 }
