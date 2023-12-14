@@ -12,6 +12,7 @@ public class ArrayOps {
      * @param val The element to add to the array.
      * @return A new array that contains all elements of the original array plus the new element.
      */
+    @SuppressWarnings("unchecked")
     static <T> T[] add(T[] arr, T val) {
         // Create a new array with a size larger by one to accommodate the new value.
         final T[] newArr = (T[]) new Object[arr.length + 1];

@@ -2,6 +2,8 @@ package frc.robot.Util;
 
 import java.util.ArrayList;
 
+import frc.robot.Core.Time;
+
 /**
  * Represents a single entry in the position history.
  */

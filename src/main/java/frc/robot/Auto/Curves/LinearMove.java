@@ -8,11 +8,23 @@ public class LinearMove implements Curve {
     final double max_speed;
     // Maximum acceleration the robot can have.
     final double max_acceleration;
-
-    // Current position of the robot.
-    Vector2 current_pos;
+    // Time it takes for robot to accelerate from 0 to max speed/decelerate from max speed to 0
+    final double acceleration_time;
+    // Start position of the robot.
+    final Vector2 start_pos;
     // The end position where the robot is supposed to move to.
-    Vector2 end_position;
+    final Vector2 end_position;
+    // Linear distance from start position to end position
+    final double total_distance;
+    // Normalized direction vector from start to end
+    final Vector2 direction_vector;
+    // Checks to see if robot needs to hit max acceleration, otherwise its velocity will be a triangle
+    final boolean isTrapezoid;
+    // Calculated time needed to get from start to end
+    final double total_time;
+
+    // Time since instruction was given
+    double time_elapsed;
     // Current speed of the robot.
     double curr_speed = 0;
 
@@ -20,9 +32,25 @@ public class LinearMove implements Curve {
     public LinearMove(double max_speed, double max_acceleration, Vector2 start, Vector2 end) {
         this.max_speed = max_speed;
         this.max_acceleration = max_acceleration;
+        // Calculating time it takes robot to accelerate to max speed
+        this.acceleration_time = max_speed / max_acceleration;
         // Cloning ensures that the vectors provided are not altered outside this class.
-        this.current_pos = start.clone();
+        this.start_pos = start.clone();
         this.end_position = end.clone();
+        this.total_distance = end_position.minus(start_pos).getMagnitude();
+        this.direction_vector = end_position.minus(start_pos).withMagnitude(1);
+        // Check if robot's acceleration should follow triangle shape
+        if (total_distance < Math.pow(max_speed, 2) / max_acceleration) {
+            isTrapezoid = false;
+            // Calculate total time the robot would need ideally to reach the end position
+            this.total_time = 2 * Math.sqrt(total_distance / max_acceleration);
+        }   
+        else {
+            isTrapezoid = true;
+            // Calculate total time the robot would need ideally to reach the end position
+            this.total_time = total_distance / max_speed + max_speed / max_acceleration;
+        }
+        this.time_elapsed = 0.0;
     }
 
     // Main method for testing the LinearMove class.
@@ -40,28 +68,37 @@ public class LinearMove implements Curve {
 
     // Method to calculate the next position of the robot given the elapsed time.
     public Vector2 next(double dTime) {
-        // If the robot is essentially at the end position, return null to indicate completion.
-        if (end_position.minus(current_pos).getMagnitude() < 0.0001) {
+        time_elapsed += dTime;
+        // Check if goal is reached
+        if (time_elapsed > total_time) {
             return null;
         }
-        // Calculate the distance needed to decelerate to a stop from the max speed.
-        double acceleration_dist = (Math.pow(max_speed, 2) / (2 * max_acceleration));
-        // If within the distance to decelerate, begin deceleration.
-        if (current_pos.minus(end_position).getMagnitude() <= acceleration_dist) {
-            curr_speed -= dTime * max_acceleration;
-        } else if (curr_speed < max_speed) {
-            // Otherwise, if below max speed, accelerate.
-            curr_speed += dTime * max_acceleration;
-            // Ensure the current speed does not exceed max speed.
-            curr_speed = Math.min(curr_speed, max_speed);
+        double distanceTraveled;
+        if (isTrapezoid) {
+            // Math if velocity is a trapezoid curve
+            if (time_elapsed <= (acceleration_time)) {
+                // Case for when robot is still accelerating
+                distanceTraveled = 0.5 * max_acceleration * Math.pow(time_elapsed, 2);
+            } else if (time_elapsed <= total_time - max_acceleration) {
+                // Case for when robot has reached max velocity and isn't decelerating yet
+                distanceTraveled = max_speed * (time_elapsed - 0.5 * acceleration_time);
+            } else {
+                // Case for when robot is decelerating
+                distanceTraveled = total_distance - 0.5 * Math.pow(total_time - time_elapsed, 2) * max_acceleration;
+            }
         }
-        // Calculate the ideal movement vector toward the end position.
-        var target_displacement = end_position.minus(current_pos);
-        // Calculate the ideal distance to move this frame, without overshooting.
-        var ideal_delta_dist = Math.min(curr_speed * dTime, target_displacement.getMagnitude());
-        // Update the position by moving towards the end position by the ideal distance.
-        current_pos = current_pos.add(target_displacement.withMagnitude(ideal_delta_dist));
-        // Return the new position.
-        return current_pos;
+        else {
+            // Math if velocity is a triangle curve
+            if (time_elapsed <= Math.sqrt(total_distance / max_acceleration)) {
+                // Case for when robot is still accelerating
+                distanceTraveled = 0.5 * max_acceleration * Math.pow(time_elapsed, 2);
+            }
+            else {
+                // Case for when robot is decelerating
+                distanceTraveled = total_distance - 0.5 * Math.pow(total_time - time_elapsed, 2) * max_acceleration;
+            }
+        }
+        Vector2 currentPosition = direction_vector.withMagnitude(distanceTraveled);
+        return currentPosition;
     }
 }

@@ -1,16 +1,16 @@
 package frc.robot.Drive;
 
+import frc.robot.Core.ScheduledComponent;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDConstant;
-import frc.robot.Util.Tickable;
 import frc.robot.Util.Vector2;
 
 /**
  * Drive is a class representing the swerve drive system of a robot.
  * It manages the coordination of the swerve modules for driving and turning movements.
  */
-public class Drive implements Tickable {
+public class Drive extends ScheduledComponent {
     // Swerve modules for each corner of the robot.
     public SwerveModulePD frontLeft;
     protected SwerveModulePD frontRight;
@@ -156,7 +156,7 @@ public class Drive implements Tickable {
     }
 
     // Updates the swerve modules each tick based on the targets set by the power method.
-    public void tick(double dTime) {
+    protected void tick(double dTime) {
         double error = 0;
         double total = 0;
         if (moduleTargets != null) {
@@ -190,5 +190,8 @@ public class Drive implements Tickable {
         frontRight.tick(dTime);
         backLeft.tick(dTime);
         backRight.tick(dTime);
+    }
+
+    public void cleanUp() {
     }
 }

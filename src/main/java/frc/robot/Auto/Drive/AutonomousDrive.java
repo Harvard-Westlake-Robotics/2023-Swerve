@@ -1,15 +1,15 @@
 package frc.robot.Auto.Drive;
 
 import frc.robot.Auto.Positioning.PositioningSystem;
+import frc.robot.Core.ScheduledComponent;
 import frc.robot.Drive.PositionedDrive;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
-import frc.robot.Util.Tickable;
 import frc.robot.Util.Vector2;
 
-public class AutonomousDrive implements Tickable {
+public class AutonomousDrive extends ScheduledComponent {
     PositionedDrive drive; // The drive system of the robot.
     PDController xController; // PID controller for x-axis motion.
     PDController yController; // PID controller for y-axis motion.
@@ -74,7 +74,7 @@ public class AutonomousDrive implements Tickable {
      *
      * @param dTime The time delta since the last tick.
      */
-    public void tick(double dTime) {
+    protected void tick(double dTime) {
         // Calculate corrections for x, y, and turn using the PID controllers.
         double xCorrect = xController.solve(targetX - pos.getPosition().x);
         double yCorrect = yController.solve(targetY - pos.getPosition().y);
@@ -98,5 +98,8 @@ public class AutonomousDrive implements Tickable {
             drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect, false);
         else
             drive.stopGoPower();
+    }
+    @Override
+    protected void cleanUp() {
     }
 }

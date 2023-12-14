@@ -5,13 +5,12 @@ import frc.robot.Util.DeSpam;
 import frc.robot.Util.LERP;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
-import frc.robot.Util.Tickable;
-
+import frc.robot.Core.ScheduledComponent;
 // The ExtenderPD class implements the Tickable interface, which requires a tick method for periodic updates.
-public class ExtenderPD implements Tickable {
+public class ExtenderPD extends ScheduledComponent {
     private ArmExtender extender; // The mechanical extender component that is being controlled
     private ArmLifter lifter; // The lifter component that may interact with the extender
-    private LERP target = new LERP(20); // A linear interpolation object to smooth the transition to the target
+    private LERP target = new LERP(0, 20); // A linear interpolation object to smooth the transition to the target
     private PDController con; // The PD (Proportional-Derivative) controller for precision control of the extender
 
     // Constructor initializing the extender, PDController with constants, and lifter. It also sets the initial target to 0.
@@ -29,17 +28,14 @@ public class ExtenderPD implements Tickable {
 
     // Method to force set a new LERP target for the extender length, with a different LERP rate (90 instead of 30).
     public void forceSetTar(double tar) {
-        target = new LERP(90);
-        target.set(tar);
+        target = new LERP(tar, 90);
     }
 
     // Instantiate a DeSpam utility, which is used to limit the frequency of certain operations, such as logging.
     DeSpam dSpam = new DeSpam(1);
 
     // The tick method is called periodically and updates the control for the extender.
-    public void tick(double dTime) {
-        // Update the target interpolation based on the time elapsed.
-        target.tick(dTime);
+    protected void tick(double dTime) {
         
         // Calculate the correction needed from the PD controller based on the target and actual extension.
         var pdCorrect = con.solve(target.get() - extender.getExtensionInches());
@@ -54,5 +50,8 @@ public class ExtenderPD implements Tickable {
         dSpam.exec(() -> {
             System.out.println("extendervolt: " + extenderVolt + " pdCorrect: " + pdCorrect);
         });
+    }
+
+    protected void cleanUp() {
     }
 }

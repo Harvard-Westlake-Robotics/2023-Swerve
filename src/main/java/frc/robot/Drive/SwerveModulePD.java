@@ -1,10 +1,10 @@
 package frc.robot.Drive;
 
+import frc.robot.Core.ScheduledComponent;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
-import frc.robot.Util.Tickable;
 
 /**
  * The SwerveModulePD class is responsible for controlling a single swerve
@@ -12,7 +12,7 @@ import frc.robot.Util.Tickable;
  * using a Proportional-Derivative (PD) control loop. It adjusts the orientation
  * of the module based on a target angle and controls the wheel speed.
  */
-public class SwerveModulePD implements Tickable {
+public class SwerveModulePD extends ScheduledComponent {
     SwerveModule swerve; // The swerve module being controlled.
     PDController controller;// The PD controller for the module's turning mechanism.
     AbsoluteEncoder coder; // The encoder that measures the module's current angle.
@@ -49,7 +49,7 @@ public class SwerveModulePD implements Tickable {
      *
      * @param dTime The elapsed time since the last control update.
      */
-    public void tick(double dTime) {
+    protected void tick(double dTime) {
         // If a turn target has been set, calculate and apply the necessary corrections.
         if (turnTarget != null) {
             var error = AngleMath.getDeltaReversable(coder.absVal(), turnTarget);
@@ -68,6 +68,9 @@ public class SwerveModulePD implements Tickable {
             // Apply the correction voltage to the swerve module.
             swerve.setTurnVoltage(correctionVoltage);
         }
+    }
+
+    protected void cleanUp() {
     }
 
     /**

@@ -3,18 +3,15 @@ package frc.robot.Devices.Motor;
 import com.ctre.phoenixpro.configs.CurrentLimitsConfigs;
 import com.ctre.phoenixpro.hardware.TalonFX;
 
-import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AnyMotor;
 import frc.robot.Util.GetDTime;
 import frc.robot.Util.LERP;
-import frc.robot.Util.Tickable;
 
 /**
  * The Falcon class extends the AnyMotor abstract class to provide an interface
  * to control a Talon FX motor controller (also known as a Falcon 500).
  */
 public class Falcon extends AnyMotor {
-    private Scheduler scheduler = Scheduler.getInstance();
     private TalonFX falcon; // The Talon FX motor controller object.
     double stallVolt; // The voltage at which the motor is considered to be stalling.
 
@@ -76,12 +73,7 @@ public class Falcon extends AnyMotor {
      * @param volts The desired voltage.
      */
     protected void uSetVoltage(double volts) {
-        var sinceTimeoutChecked = sinceCheckedTimeout.tick();
-        // checks for motor disconnect
-        if (!enabledLerp.isInitialized())
-            enabledLerp.set(1);
         enabledLerp.set(falcon.isAlive() ? 1 : 0);
-        enabledLerp.tick(sinceTimeoutChecked);
         enabled = enabledLerp.get() > 0.5;
         // sends voltages
         if (!enabled) {
@@ -117,6 +109,6 @@ public class Falcon extends AnyMotor {
     }
 
     boolean enabled = true;
-    LERP enabledLerp = new LERP(0.01);
+    LERP enabledLerp = new LERP(1, 0.01);
     GetDTime sinceCheckedTimeout = new GetDTime();
 }

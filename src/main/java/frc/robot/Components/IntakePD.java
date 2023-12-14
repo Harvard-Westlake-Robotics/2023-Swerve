@@ -1,20 +1,20 @@
 package frc.robot.Components;
 
+import frc.robot.Core.ScheduledComponent;
 // Import utility classes that will be used in the IntakePD class.
 import frc.robot.Util.DeSpam;
 import frc.robot.Util.LERP;
 import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
-import frc.robot.Util.Tickable;
 
 // The IntakePD class is responsible for controlling the intake mechanism with PD (Proportional-Derivative) control.
-public class IntakePD implements Tickable {
+public class IntakePD extends ScheduledComponent {
     Intake intake; // Intake mechanism component
     ArmLifter lifter; // Arm lifter component for the robot
     ArmExtender extender; // Unused in this snippet, presumably controls the extension of the arm
     PDController angController; // PD controller for the intake angle
     double antiGravIntensity; // Intensity of the anti-gravity compensation
-    LERP intakeAnglerTarget = new LERP(300); // LERP target for the intake angle
+    LERP intakeAnglerTarget = new LERP(0, 300); // LERP target for the intake angle
 
     // Constructor for the IntakePD class
     public IntakePD(Intake intake, PDConstant anglerConstant, double antiGravIntensity, ArmLifter lifter) {
@@ -57,10 +57,7 @@ public class IntakePD implements Tickable {
     DeSpam dSpam = new DeSpam(1);
 
     // The tick method updates the control loop for the intake angler
-    public void tick(double dTime) {
-        // Update the target angle based on the elapsed time
-        intakeAnglerTarget.tick(dTime);
-        
+    protected void tick(double dTime) {
         // Calculate the anti-gravity force required based on the current angle of the intake and lifter.
         // This is used to compensate for the weight of the arm as it moves.
         final double antiGrav = -antiGravIntensity
@@ -78,5 +75,8 @@ public class IntakePD implements Tickable {
         // dSpam.exec(() -> {
         //     System.out.println("antigrav: " + antiGrav);
         // });
+    }
+
+    protected void cleanUp() {
     }
 }
