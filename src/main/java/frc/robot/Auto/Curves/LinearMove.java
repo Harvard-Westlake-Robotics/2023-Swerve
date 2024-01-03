@@ -29,13 +29,13 @@ public class LinearMove implements Curve {
     double curr_speed = 0;
 
     // Constructor that initializes the movement with max speed, acceleration, start and end positions.
-    public LinearMove(double max_speed, double max_acceleration, Vector2 start, Vector2 end) {
+    public LinearMove(double max_speed, double max_acceleration, Vector2 end) {
         this.max_speed = max_speed;
         this.max_acceleration = max_acceleration;
         // Calculating time it takes robot to accelerate to max speed
         this.acceleration_time = max_speed / max_acceleration;
         // Cloning ensures that the vectors provided are not altered outside this class.
-        this.start_pos = start.clone();
+        this.start_pos = new Vector2(0, 0);
         this.end_position = end.clone();
         this.total_distance = end_position.minus(start_pos).getMagnitude();
         this.direction_vector = end_position.minus(start_pos).withMagnitude(1);
@@ -57,7 +57,6 @@ public class LinearMove implements Curve {
     public static void main(String[] args) {
         // Creating a new LinearMove instance.
         var move = new LinearMove(5, 0.5,
-                new Vector2(0, 0),
                 new Vector2(100, 0));
         // Running a loop until the robot reaches the end position.
         for (var pos = move.next(0); pos != null; pos = move.next(0.1)) {
