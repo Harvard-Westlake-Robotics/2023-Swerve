@@ -20,7 +20,7 @@ import frc.robot.Util.Phase;
  * project.
  */
 public class Robot extends TimedRobot {
-  RobotPolicy policy;
+  static RobotPolicy policy;
   GetDTime dTGet = new GetDTime();
 
   private static Boolean isInit;

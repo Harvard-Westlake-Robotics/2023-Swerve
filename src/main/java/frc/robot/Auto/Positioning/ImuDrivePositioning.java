@@ -36,7 +36,7 @@ public class ImuDrivePositioning extends ScheduledComponent implements Positioni
     // Calculates and returns the current speed as a 2D vector using the position
     // history.
     @Override
-    public Vector2 getSpeed() {
+    public Vector2 getVelocity() {
         return new Vector2(x.getSpeed(), y.getSpeed());
     }
 
@@ -56,17 +56,20 @@ public class ImuDrivePositioning extends ScheduledComponent implements Positioni
         x.addPos(getPosition().x); // Adds the current x position to the history
         y.addPos(getPosition().y); // Adds the current y position to the history
         angle.addPos(getAngle()); // Adds the current angle to the history
+        drive.forceSetAngle(getAngle());
     }
 
     protected void cleanUp() {
     }
 
-    // Resets the position and angle histories, effectively zeroing the positioning
-    // system.
-    @Override
-    public void zero() {
-        x.reset();
-        y.reset();
-        angle.reset();
+    public void setAngle(double angle) {
+        drive.forceSetAngle(angle);
+        this.angle.reset();
+    }
+
+    public void setPosition(double x, double y) {
+        drive.forceSetPosition(x, y);
+        this.x.reset();
+        this.y.reset();
     }
 }

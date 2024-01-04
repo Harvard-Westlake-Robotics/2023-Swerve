@@ -7,45 +7,48 @@ import frc.robot.Util.Vector2;
 
 /**
  * PositionedDrive extends the base Drive class to incorporate positioning.
- * It tracks the x, y position and angle of the robot based on the movement of its swerve modules.
+ * It tracks the x, y position and angle of the robot based on the movement of
+ * its swerve modules.
  */
 public class PositionedDrive extends Drive {
-    private double x = 0;          // The x-coordinate of the robot on the field.
-    private double y = 0;          // The y-coordinate of the robot on the field.
-    private double angle = 90;     // The robot's current angle in degrees, starting at 90 degrees.
-    Getter<Double> getCurrentAngle;// Functional interface to get the current angle of the robot.
+    private double x = 0;
+    private double y = 0;
+    private double angle = 90;
 
-    // Getter for the robot's current angle.
+    public void forceSetAngle(double ang) {
+        angle = ang;
+    }
+
+    public void forceSetPosition(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
     public double getAngle() {
         return angle;
     }
 
-    // Getter for the robot's current position as a vector.
     public Vector2 getPosition() {
         return new Vector2(x, y);
     }
 
-    // Stores the last positions of the wheels to calculate movement delta.
     private double[][] lastWheelPositions = new double[4][2];
 
-    // Resets the robot's position and angle to the starting values.
     public void reset() {
-        updateLastWheelPositions(); // Update wheel positions to current readings.
+        updateLastWheelPositions();
         x = 0;
         y = 0;
-        angle = 90; // Start facing directly to the right.
+        angle = 90;
     }
 
-    // Constructor initializes the drive system and the wheel positions.
     public PositionedDrive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
-                           SwerveModulePD backRight, double widthInches, double lengthInches, 
-                           Getter<Double> getCurrentAngle) {
+            SwerveModulePD backRight, double widthInches, double lengthInches,
+            Getter<Double> getCurrentAngle) {
         super(frontLeft, frontRight, backLeft, backRight, widthInches, lengthInches);
-        this.getCurrentAngle = getCurrentAngle;
-        updateLastWheelPositions(); // Initialize wheel positions.
+        updateLastWheelPositions();
     }
 
-    // Updates the last known positions of the swerve module wheels.
+    // used to get the amount each wheel has moved each tick
     public void updateLastWheelPositions() {
         lastWheelPositions[0] = new double[] { frontRight.getAngle(), frontRight.getDist() };
         lastWheelPositions[1] = new double[] { frontLeft.getAngle(), frontLeft.getDist() };
@@ -53,9 +56,8 @@ public class PositionedDrive extends Drive {
         lastWheelPositions[3] = new double[] { backRight.getAngle(), backRight.getDist() };
     }
 
-    DeSpam dSpam = new DeSpam(0.3); // Utility to prevent spamming, not used in the current context.
+    DeSpam dSpam = new DeSpam(0.3);
 
-    // Updates the robot's position and angle based on the swerve modules' movements.
     @Override
     public void tick(double dTime) {
         // Calculate the distance each wheel has traveled since the last update.
@@ -80,19 +82,16 @@ public class PositionedDrive extends Drive {
                 .add(Vector2.fromAngleAndMag(frontLeft.getAngle(), frontLeftDist))
                 .add(Vector2.fromAngleAndMag(backLeft.getAngle(), backLeftDist))
                 .add(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist))
-                .multiply(0.25); // Average of all wheels.
+                .multiply(0.25);
 
-        // Rotate the drive vector based on the current robot angle to get field-oriented movement.
-        var driveInches = driveInchesRobot.rotate(-1 * AngleMath.toTurnAngle(-getCurrentAngle.get()));
-
-        // Update the robot's position based on the calculated movement.
+        var driveInches = driveInchesRobot.rotate(-1 * AngleMath.toTurnAngle(-angle));
+        
         x += driveInches.x;
         y += driveInches.y;
         angle += turnDegrees;
 
-        // Update the last wheel positions for the next iteration.
         updateLastWheelPositions();
-        // Call the parent class tick function.
+        
         super.tick(dTime);
     };
 }

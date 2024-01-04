@@ -4,7 +4,6 @@ import frc.robot.Auto.Curves.Curve;
 import frc.robot.Core.Schedulable;
 import frc.robot.Core.Scheduler;
 import frc.robot.Util.Promise;
-import frc.robot.Util.SimplePromise;
 import frc.robot.Util.Vector2;
 
 public class MoveAuto {
