@@ -20,7 +20,7 @@ import frc.robot.Util.Phase;
  * project.
  */
 public class Robot extends TimedRobot {
-  static RobotPolicy policy;
+  RobotPolicy policy;
   GetDTime dTGet = new GetDTime();
 
   private static Boolean isInit;
@@ -55,7 +55,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     phase = Phase.Auto;
     isInit = true;
-    Scheduler.getCore().clear();
+    Scheduler.getCore().onTaskEnd();
     dTGet.tick();
     policy.autonomous();
   }
@@ -69,7 +69,7 @@ public class Robot extends TimedRobot {
   public void teleopInit() {
     phase = Phase.Teleop;
     isInit = true;
-    Scheduler.getCore().clear();
+    Scheduler.getCore().onTaskEnd();
     dTGet.tick();
     policy.teleop();
   }
@@ -83,7 +83,7 @@ public class Robot extends TimedRobot {
   public void disabledInit() {
     phase = Phase.Disabled;
     isInit = true;
-    Scheduler.getCore().clear();
+    Scheduler.getCore().onTaskEnd();
     dTGet.tick();
     policy.disabled();
   }
@@ -97,7 +97,7 @@ public class Robot extends TimedRobot {
   public void testInit() {
     phase = Phase.Test;
     isInit = true;
-    Scheduler.getCore().clear();
+    Scheduler.getCore().onTaskEnd();
     dTGet.tick();
     policy.test();
   }

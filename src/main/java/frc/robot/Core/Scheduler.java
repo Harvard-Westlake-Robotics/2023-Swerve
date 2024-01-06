@@ -3,6 +3,7 @@ package frc.robot.Core;
 import java.util.LinkedList;
 
 import frc.robot.Robot;
+import frc.robot.Util.Lambda;
 import frc.robot.Util.Phase;
 import frc.robot.Util.Promise;
 import frc.robot.Util.SimplePromise;
@@ -38,14 +39,39 @@ public class Scheduler {
 
     public static Promise runTask(Schedulable task) {
         var entry = new Entry(task,
-                Robot.getPhase() == Phase.Init ? Clear.TaskEnd : Clear.Never);
+                Robot.getPhase() == Phase.Init ? Clear.Never : Clear.TaskEnd);
         schedulables.add(entry);
         return entry.promise;
     }
 
-    public void clear() {
-        for (Entry item : schedulables) {
-            schedulables.remove(item);
+    public static Lambda registerTick(Lambda everyTick) {
+        var task = new Schedulable() {
+            @Override
+            protected void start() {
+
+            }
+
+            @Override
+            protected void tick(double dTime) {
+                everyTick.run();
+            }
+
+            @Override
+            protected void end() {
+
+            }
+        };
+        return () -> {
+            task.complete();
+        };
+    }
+
+    public void onTaskEnd() {
+        for (int i = 0; i < schedulables.size(); i++) {
+            if (schedulables.get(i).clear == Clear.TaskEnd) {
+                schedulables.remove(i);
+                i--;
+            }
         }
     }
 

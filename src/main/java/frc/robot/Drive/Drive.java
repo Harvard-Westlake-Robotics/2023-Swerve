@@ -8,7 +8,8 @@ import frc.robot.Util.Vector2;
 
 /**
  * Drive is a class representing the swerve drive system of a robot.
- * It manages the coordination of the swerve modules for driving and turning movements.
+ * It manages the coordination of the swerve modules for driving and turning
+ * movements.
  */
 public class Drive extends ScheduledComponent {
     // Swerve modules for each corner of the robot.
@@ -26,8 +27,11 @@ public class Drive extends ScheduledComponent {
     private double alignmentThreshold = 1;
 
     /**
-     * Sets the threshold for how closely aligned the modules need to be to their target positions before driving begins.
-     * @param newThreshold A value between 0 (exclusive) and 1 (inclusive) representing the alignment threshold.
+     * Sets the threshold for how closely aligned the modules need to be to their
+     * target positions before driving begins.
+     * 
+     * @param newThreshold A value between 0 (exclusive) and 1 (inclusive)
+     *                     representing the alignment threshold.
      */
     public void setAlignmentThreshold(double newThreshold) {
         if (newThreshold <= 0 || newThreshold > 1)
@@ -36,16 +40,18 @@ public class Drive extends ScheduledComponent {
     }
 
     /**
-     * Constructor for Drive that sets up the swerve modules and the robot's dimensions.
-     * @param frontLeft The front-left swerve module.
-     * @param frontRight The front-right swerve module.
-     * @param backLeft The back-left swerve module.
-     * @param backRight The back-right swerve module.
-     * @param widthInches The width of the robot in inches.
+     * Constructor for Drive that sets up the swerve modules and the robot's
+     * dimensions.
+     * 
+     * @param frontLeft    The front-left swerve module.
+     * @param frontRight   The front-right swerve module.
+     * @param backLeft     The back-left swerve module.
+     * @param backRight    The back-right swerve module.
+     * @param widthInches  The width of the robot in inches.
      * @param lengthInches The length of the robot in inches.
      */
     public Drive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
-                 SwerveModulePD backRight, double widthInches, double lengthInches) {
+            SwerveModulePD backRight, double widthInches, double lengthInches) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
@@ -61,10 +67,13 @@ public class Drive extends ScheduledComponent {
     Vector2[] moduleTargets; // Targets for each module for driving and turning.
 
     /**
-     * Powers the robot's swerve modules to drive and turn according to specified voltages and directions.
-     * @param goVoltage Directional power in volts.
-     * @param goDirectionDeg Direction to go straight in degrees, in standard position.
-     * @param turnVoltage Rotational power in volts.
+     * Powers the robot's swerve modules to drive and turn according to specified
+     * voltages and directions.
+     * 
+     * @param goVoltage           Directional power in volts.
+     * @param goDirectionDeg      Direction to go straight in degrees, in standard
+     *                            position.
+     * @param turnVoltage         Rotational power in volts.
      * @param errorOnLargeVoltage If true, throws an error when voltage exceeds 12V.
      */
     public void power(double goVoltage, double goDirectionDeg, double turnVoltage, boolean errorOnLargeVoltage) {
@@ -83,7 +92,8 @@ public class Drive extends ScheduledComponent {
         if (moduleTargets == null)
             moduleTargets = new Vector2[4];
 
-        // Calculate target vectors for each module based on driving and turning directions.
+        // Calculate target vectors for each module based on driving and turning
+        // directions.
         for (int quadrant = 1; quadrant <= 4; quadrant++) {
             var turnVec = getTurnVec(quadrant).multiply(turnVoltage);
             var goVec = Vector2.fromAngleAndMag(goDirectionDeg, goVoltage);
@@ -126,8 +136,11 @@ public class Drive extends ScheduledComponent {
         backRight.setConstants(constant);
     }
 
+    DeSpam isgoing = new DeSpam(0.3);
+
     /**
-     * Gets the vector representing the turning direction for a wheel in a given quadrant.
+     * Gets the vector representing the turning direction for a wheel in a given
+     * quadrant.
      * Quadrants are numbered as follows:
      * 2 ↗ ↘ 1
      * 3 ↖ ↙ 4
@@ -155,7 +168,8 @@ public class Drive extends ScheduledComponent {
         }
     }
 
-    // Updates the swerve modules each tick based on the targets set by the power method.
+    // Updates the swerve modules each tick based on the targets set by the power
+    // method.
     protected void tick(double dTime) {
         double error = 0;
         double total = 0;
@@ -177,7 +191,13 @@ public class Drive extends ScheduledComponent {
                 var vec = moduleTargets[quadrant - 1];
                 if (error / total < 1 - alignmentThreshold) {
                     module.setGoVoltage(vec.getMagnitude());
+                    isgoing.exec(() -> {
+                        System.out.println("doing something");
+                    });
                 } else {
+                    isgoing.exec(() -> {
+                        System.out.println("doing nothing");
+                    });
                     module.setGoVoltage(0);
                 }
                 module.setTurnTarget(vec.getTurnAngleDeg());

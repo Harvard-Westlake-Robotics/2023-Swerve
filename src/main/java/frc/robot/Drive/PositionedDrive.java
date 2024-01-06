@@ -42,8 +42,7 @@ public class PositionedDrive extends Drive {
     }
 
     public PositionedDrive(SwerveModulePD frontLeft, SwerveModulePD frontRight, SwerveModulePD backLeft,
-            SwerveModulePD backRight, double widthInches, double lengthInches,
-            Getter<Double> getCurrentAngle) {
+            SwerveModulePD backRight, double widthInches, double lengthInches) {
         super(frontLeft, frontRight, backLeft, backRight, widthInches, lengthInches);
         updateLastWheelPositions();
     }
@@ -85,13 +84,13 @@ public class PositionedDrive extends Drive {
                 .multiply(0.25);
 
         var driveInches = driveInchesRobot.rotate(-1 * AngleMath.toTurnAngle(-angle));
-        
+
         x += driveInches.x;
         y += driveInches.y;
         angle += turnDegrees;
 
         updateLastWheelPositions();
-        
+
         super.tick(dTime);
     };
 }
