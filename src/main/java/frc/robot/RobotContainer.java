@@ -18,7 +18,7 @@ public class RobotContainer {
     static RobotPolicy init() {
         PositionedDrive drive;
         {
-            var placeholderConstant = new PDConstant(0, 0);
+            var placeholderConstant = new PDConstant(0.1, 0);
             var leftBackEncoder = new AbsoluteEncoder(21, 68.203125, true).offset(-90);
             var leftBackTurn = new Falcon(8, false);
             var leftBackGo = new Falcon(7, false);

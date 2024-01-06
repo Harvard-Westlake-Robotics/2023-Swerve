@@ -1,5 +1,7 @@
 package frc.robot.Drive;
 
+import org.ejml.ops.QuickSort_S32;
+
 import frc.robot.Core.ScheduledComponent;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
@@ -102,6 +104,12 @@ public class Drive extends ScheduledComponent {
             moduleTargets[quadrant - 1] = vec;
         }
 
+        dSpam.exec(() -> {
+            for (var m : moduleTargets) {
+                System.out.println(m);
+            }
+        });
+
         // Normalize voltages so that no module exceeds 12V.
         double largestVoltage = 0;
         for (Vector2 tar : moduleTargets) {
@@ -122,12 +130,6 @@ public class Drive extends ScheduledComponent {
         this.power(goVoltage, goDirectionDeg, turnVoltage, true);
     }
 
-    // Testing method to print out the angles of all swerve modules.
-    public void tester(double goDirectionDeg) {
-        System.out.println("Front Left: " + frontLeft.getAngle());
-        // ... Additional print statements for other modules can be added here.
-    }
-
     // Sets the same PD constants for all swerve modules.
     public void setConstants(PDConstant constant) {
         frontLeft.setConstants(constant);
@@ -135,8 +137,6 @@ public class Drive extends ScheduledComponent {
         backLeft.setConstants(constant);
         backRight.setConstants(constant);
     }
-
-    DeSpam isgoing = new DeSpam(0.3);
 
     /**
      * Gets the vector representing the turning direction for a wheel in a given
@@ -168,6 +168,8 @@ public class Drive extends ScheduledComponent {
         }
     }
 
+    DeSpam dSpam = new DeSpam(0.5);
+
     // Updates the swerve modules each tick based on the targets set by the power
     // method.
     protected void tick(double dTime) {
@@ -189,15 +191,10 @@ public class Drive extends ScheduledComponent {
         for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
             if (moduleTargets != null) {
                 var vec = moduleTargets[quadrant - 1];
+                final var q = quadrant;
                 if (error / total < 1 - alignmentThreshold) {
                     module.setGoVoltage(vec.getMagnitude());
-                    isgoing.exec(() -> {
-                        System.out.println("doing something");
-                    });
                 } else {
-                    isgoing.exec(() -> {
-                        System.out.println("doing nothing");
-                    });
                     module.setGoVoltage(0);
                 }
                 module.setTurnTarget(vec.getTurnAngleDeg());

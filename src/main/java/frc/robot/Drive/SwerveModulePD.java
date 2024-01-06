@@ -42,7 +42,7 @@ public class SwerveModulePD extends ScheduledComponent {
         this.coder = coder;
     }
 
-    Double turnTarget = null; // The target angle for the module's turning.
+    Double turnTarget = null;
 
     /**
      * Updates the swerve module's control loop with the time since the last tick.
