@@ -1,22 +1,26 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PS4Controller;
+import frc.robot.Auto.Positioning.PositioningSystem;
 import frc.robot.Core.RobotPolicy;
 import frc.robot.Core.Schedulable;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.BetterPS4;
+import frc.robot.Devices.Imu;
 import frc.robot.Devices.LimeLight;
 import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Drive.PositionedDrive;
 import frc.robot.Drive.SwerveModule;
 import frc.robot.Drive.SwerveModulePD;
+import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDConstant;
+import frc.robot.Auto.Positioning.*;
 
 public class RobotContainer {
 
     static RobotPolicy init() {
         PositionedDrive drive;
+        var imu = new Imu(18);
         {
             var placeholderConstant = new PDConstant(0.1, 0);
             var leftBackEncoder = new AbsoluteEncoder(21, 68.203125, true).offset(-90);
@@ -49,23 +53,21 @@ public class RobotContainer {
 
             public void teleop() {
                 var con = new BetterPS4(0);
-                LimeLight.setCamMode(false);
+                LimeLight.setCamMode(true);
+
                 drive.setAlignmentThreshold(0.5);
-                Scheduler.runTask(
-                        new Schedulable() {
-                            public void start() {
-                            }
+                PositioningSystem fieldPositioning = new FieldPositioning(drive, imu, 0.0);
+                DeSpam dSpam = new DeSpam(0.3);
 
-                            public void tick(double dTime) {
-                                drive.power(con.getLeftStick().getMagnitude() * 12.0, // voltage
-                                        con.getLeftStick().getAngleDeg(), // go angle
-                                        con.getRightX() * 12.0, // turn voltage
-                                        false);
-                            }
-
-                            public void end() {
-                            }
-                        });
+                Scheduler.registerTick(() -> {
+                    dSpam.exec(() -> {
+                        System.out.println("angle: " + fieldPositioning.getAngle() + " ");
+                    });
+                    drive.power(con.getLeftStick().getMagnitude() * 12.0, // voltage
+                            con.getLeftStick().getAngleDeg(), // go angle
+                            con.getRightX() * 12.0, // turn voltage
+                            false);
+                });
             }
 
             public void autonomous() {

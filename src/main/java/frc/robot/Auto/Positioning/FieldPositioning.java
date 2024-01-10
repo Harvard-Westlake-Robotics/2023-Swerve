@@ -11,7 +11,7 @@ import frc.robot.Util.Vector2;
 public class FieldPositioning extends ScheduledComponent implements PositioningSystem {
     ImuDrivePositioning imuDrivePositioning;
 
-    FieldPositioning(PositionedDrive drive, Imu imu, double assumedStartRotation) {
+    public FieldPositioning(PositionedDrive drive, Imu imu, double assumedStartRotation) {
         imuDrivePositioning = new ImuDrivePositioning(imu, drive);
         imuDrivePositioning.setAngle(assumedStartRotation);
     }

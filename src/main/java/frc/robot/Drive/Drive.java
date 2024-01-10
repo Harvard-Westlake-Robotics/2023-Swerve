@@ -64,8 +64,6 @@ public class Drive extends ScheduledComponent {
                 * Math.sqrt((widthInches * widthInches + lengthInches * lengthInches) / 2);
     }
 
-    DeSpam deSpam = new DeSpam(0.3); // Utility to prevent spamming, not used in the current context.
-
     Vector2[] moduleTargets; // Targets for each module for driving and turning.
 
     /**
@@ -103,12 +101,6 @@ public class Drive extends ScheduledComponent {
 
             moduleTargets[quadrant - 1] = vec;
         }
-
-        dSpam.exec(() -> {
-            for (var m : moduleTargets) {
-                System.out.println(m);
-            }
-        });
 
         // Normalize voltages so that no module exceeds 12V.
         double largestVoltage = 0;
