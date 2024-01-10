@@ -17,8 +17,6 @@ public class RobotContainer {
 
     static RobotPolicy init() {
         PositionedDrive drive;
-        Falcon shooter1;
-        Falcon shooter2;
         {
             var placeholderConstant = new PDConstant(0.1, 0);
             var leftBackEncoder = new AbsoluteEncoder(21, 68.203125, true).offset(-90);
@@ -45,12 +43,7 @@ public class RobotContainer {
             var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
             var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
-            var shooterMotor1 = new Falcon(0, false);
-            var shooterMotor2 = new Falcon(0, false);
-
             drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23.0, 23.0);
-            shooter1 = shooterMotor1;
-            shooter2 = shooterMotor2;
         }
         return new RobotPolicy() {
 
@@ -68,8 +61,6 @@ public class RobotContainer {
                                         con.getLeftStick().getAngleDeg(), // go angle
                                         con.getRightX() * 12.0, // turn voltage
                                         false);
-                                shooter1.setVoltage(12.0 * con.getR2Axis());
-                                shooter2.setVoltage(12.0 * con.getR2Axis());
                             }
 
                             public void end() {
