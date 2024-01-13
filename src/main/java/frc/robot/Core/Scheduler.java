@@ -61,6 +61,7 @@ public class Scheduler {
 
             }
         };
+        runTask(task);
         return () -> {
             task.complete();
         };

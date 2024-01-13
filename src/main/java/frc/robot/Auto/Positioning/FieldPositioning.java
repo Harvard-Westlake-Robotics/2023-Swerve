@@ -5,6 +5,7 @@ import frc.robot.Core.ScheduledComponent;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.LimeLight;
 import frc.robot.Drive.PositionedDrive;
+import frc.robot.Util.DeSpam;
 import frc.robot.Util.Vector2;
 
 // ImuDrivePositioning integrates IMU and drive data to implement a positioning system for the robot.
@@ -36,10 +37,15 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
         return imuDrivePositioning.getPosition();
     }
 
+    DeSpam dSpam = new DeSpam(0.3);
+
     @Override
     protected void tick(double dTime) {
         if (LimeLight.foundTarget()) {
             imuDrivePositioning.setAngle(LimeLight.getRobotYaw());
+            dSpam.exec(() -> {
+                System.out.println("limelight x, y: " + LimeLight.getRobotX() + ", " + LimeLight.getRobotY());
+            });
             imuDrivePositioning.setPosition(LimeLight.getRobotX(), LimeLight.getRobotY());
         }
     }

@@ -1,5 +1,6 @@
 package frc.robot.Devices;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -25,17 +26,17 @@ public class LimeLight {
 
     public static double getRobotX() {
         double[] botposeArray = botpose.getDoubleArray(new double[0]);
-        return botposeArray[0];
+        return Units.metersToInches(botposeArray[0]);
     }
 
     public static double getRobotY() {
         double[] botposeArray = botpose.getDoubleArray(new double[0]);
-        return botposeArray[1];
+        return Units.metersToInches(botposeArray[1]);
     }
 
     public static double getRobotZ() {
         double[] botposeArray = botpose.getDoubleArray(new double[0]);
-        return botposeArray[2];
+        return Units.metersToInches(botposeArray[2]);
     }
 
     public static double getRobotRoll() {

@@ -2,7 +2,6 @@ package frc.robot;
 
 import frc.robot.Auto.Positioning.PositioningSystem;
 import frc.robot.Core.RobotPolicy;
-import frc.robot.Core.Schedulable;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Devices.BetterPS4;
@@ -12,8 +11,11 @@ import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Drive.PositionedDrive;
 import frc.robot.Drive.SwerveModule;
 import frc.robot.Drive.SwerveModulePD;
+import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDConstant;
+import frc.robot.Util.PDController;
+import frc.robot.Util.ScaleInput;
 import frc.robot.Auto.Positioning.*;
 
 public class RobotContainer {
@@ -21,6 +23,8 @@ public class RobotContainer {
     static RobotPolicy init() {
         PositionedDrive drive;
         var imu = new Imu(18);
+        var turnPD = new PDController(new PDConstant(0.2, 0.5));
+
         {
             var placeholderConstant = new PDConstant(0.1, 0);
             var leftBackEncoder = new AbsoluteEncoder(21, 68.203125, true).offset(-90);
@@ -49,6 +53,7 @@ public class RobotContainer {
 
             drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23.0, 23.0);
         }
+        var dspam = new DeSpam(0.3);
         return new RobotPolicy() {
 
             public void teleop() {
@@ -56,16 +61,17 @@ public class RobotContainer {
                 LimeLight.setCamMode(true);
 
                 drive.setAlignmentThreshold(0.5);
-                PositioningSystem fieldPositioning = new FieldPositioning(drive, imu, 0.0);
-                DeSpam dSpam = new DeSpam(0.3);
+                FieldPositioning fieldPositioning = new FieldPositioning(drive, imu, 0.0);
 
                 Scheduler.registerTick(() -> {
-                    dSpam.exec(() -> {
-                        System.out.println("angle: " + fieldPositioning.getAngle() + " ");
+                    dspam.exec(() -> {
+                        System.out.println(
+                                "pos: " + fieldPositioning.getPosition() + " angle: " + fieldPositioning.getAngle());
                     });
-                    drive.power(con.getLeftStick().getMagnitude() * 12.0, // voltage
-                            con.getLeftStick().getAngleDeg(), // go angle
-                            con.getRightX() * 12.0, // turn voltage
+                    drive.power(ScaleInput.curve(con.getLeftStick().getMagnitude(), 1.5) * 12.0, // voltage
+                            con.getLeftStick().getTurnAngleDeg() - fieldPositioning.getAngle() - 90, // go angle
+                            ScaleInput.curve(con.getRightX(), 1) * 12.0,
+                            // turn voltage
                             false);
                 });
             }

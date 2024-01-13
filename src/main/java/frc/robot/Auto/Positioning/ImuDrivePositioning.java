@@ -64,6 +64,7 @@ public class ImuDrivePositioning extends ScheduledComponent implements Positioni
 
     public void setAngle(double angle) {
         drive.forceSetAngle(angle);
+        imu.setYaw(angle);
         this.angle.reset();
     }
 
