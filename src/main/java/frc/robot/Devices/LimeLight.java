@@ -25,6 +25,7 @@ public class LimeLight {
     // The coordinate system is as follows:
     // x = 0 is at the center of the field. The red side is at positive x and the blue side is at negative x.
     // y = 0 is at the center of the field. The speakers are at positive y.
+    // NOTE: these coordinates are in meters and should be appropriately converted before use.
     // Following are the coordinates of the april tags (the z axis represents height):
     // 1. (6.808597, -3.859403, 1.355852)
     // 2. (7.914259, -3.221609, 1.355852)
