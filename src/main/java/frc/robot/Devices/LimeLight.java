@@ -22,7 +22,26 @@ public class LimeLight {
         double x = tx.getDouble(0.0);
         return x;
     }
-
+    // The coordinate system is as follows:
+    // x = 0 is at the center of the field. The red side is at positive x and the blue side is at negative x.
+    // y = 0 is at the center of the field. The speakers are at positive y.
+    // Following are the coordinates of the april tags (the z axis represents height):
+    // 1. (6.808597, -3.859403, 1.355852)
+    // 2. (7.914259, -3.221609, 1.355852)
+    // 3. (8.308467, 0.877443, 1.451102)
+    // 4. (8.308467, 1.442593, 1.451102)
+    // 5. (6.429883, 4.098925, 1.355852)
+    // 6. (-6.429375, 4.098925, 1.355852)
+    // 7. (-8.308975, 1.442593, 1.451102)
+    // 8. (-8.308975, 0.877443, 1.451102)
+    // 9. (-7.914767, -3.221609, 1.355852)
+    // 10. (-6.809359, -3.859403, 1.355852)
+    // 11. (3.633851, -0.392049, 1.3208)
+    // 12. (3.633851, 0.393065, 1.3208)
+    // 13. (2.949321, -0.000127, 1.3208)
+    // 14. (-2.950083, -0.000127, 1.3208)
+    // 15. (-3.629533, 0.393065, 1.3208)
+    // 16. (-3.629533, -0.392049, 1.3208)
     public static double getRobotX() {
         double[] botposeArray = botpose.getDoubleArray(new double[0]);
         return botposeArray[0];
