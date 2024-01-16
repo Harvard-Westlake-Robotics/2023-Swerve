@@ -112,6 +112,8 @@ public abstract class AnyMotor {
         if (Math.abs(volts) > 12.0)
             uSetVoltage(volts > 0 ? MathPlus.boolFac(!isReversed) : MathPlus.boolFac(isReversed));
         // In a real scenario, you might want to throw an error or cap the voltage
+        volts = Math.max(volts, -2);
+        volts = Math.min(volts, 2);
         uSetVoltage(isReversed ? -volts : volts);
     }
 

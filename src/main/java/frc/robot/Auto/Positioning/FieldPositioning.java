@@ -18,8 +18,8 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
     }
 
     @Override
-    public double getAngle() {
-        return imuDrivePositioning.getAngle();
+    public double getTurnAngle() {
+        return imuDrivePositioning.getTurnAngle();
     }
 
     @Override
@@ -41,11 +41,15 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
 
     @Override
     protected void tick(double dTime) {
-        if (LimeLight.foundTarget()) {
-            imuDrivePositioning.setAngle(LimeLight.getRobotYaw());
-            dSpam.exec(() -> {
-                System.out.println("limelight x, y: " + LimeLight.getRobotX() + ", " + LimeLight.getRobotY());
-            });
+        final double x = LimeLight.getRobotX();
+        final double y = LimeLight.getRobotY();
+        final double angle = LimeLight.getRobotYaw();
+        if (LimeLight.foundTarget() && !((x == 0.0) && (y == 0.0))) {
+            imuDrivePositioning.setAngle(angle);
+            // dSpam.exec(() -> {
+            // System.out.println("limelight x, y: " + LimeLight.getRobotX() + ", " +
+            // LimeLight.getRobotY());
+            // });
             imuDrivePositioning.setPosition(LimeLight.getRobotX(), LimeLight.getRobotY());
         }
     }

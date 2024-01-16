@@ -73,7 +73,7 @@ public class Drive extends ScheduledComponent {
      * @param goVoltage           Directional power in volts.
      * @param goDirectionDeg      Direction to go straight in degrees, in standard
      *                            position.
-     * @param turnVoltage         Rotational power in volts.
+     * @param turnVoltage         Rotational power in volts (positive to left).
      * @param errorOnLargeVoltage If true, throws an error when voltage exceeds 12V.
      */
     public void power(double goVoltage, double goDirectionDeg, double turnVoltage, boolean errorOnLargeVoltage) {
@@ -143,8 +143,8 @@ public class Drive extends ScheduledComponent {
     protected static Vector2 getTurnVec(int quadrant) {
         var squareSide = 1.0 / Math.sqrt(2);
         return new Vector2(
-                (quadrant == 1 || quadrant == 2) ? squareSide : -squareSide,
-                (quadrant == 2 || quadrant == 3) ? squareSide : -squareSide);
+                (quadrant == 1 || quadrant == 2) ? -squareSide : squareSide,
+                (quadrant == 2 || quadrant == 3) ? -squareSide : squareSide);
     }
 
     // Resets the drive system, typically called when initializing.

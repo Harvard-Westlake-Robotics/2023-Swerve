@@ -1,7 +1,8 @@
 package frc.robot.Util;
 
 /**
- * The AngleMath class provides static utility methods for performing angle calculations,
+ * The AngleMath class provides static utility methods for performing angle
+ * calculations,
  * particularly useful in robotics for navigation and orientation tasks.
  */
 public class AngleMath {
@@ -37,7 +38,8 @@ public class AngleMath {
     }
 
     /**
-     * Determines if the shortest path to correct an angle error is in the reverse direction.
+     * Determines if the shortest path to correct an angle error is in the reverse
+     * direction.
      *
      * @param current The current angle.
      * @param target  The target angle.
@@ -46,7 +48,8 @@ public class AngleMath {
     public static boolean shouldReverseCorrect(double current, double target) {
         // Calculate the error when facing the target directly.
         var frontFaceError = AngleMath.getDelta(current, target);
-        // Calculate the error when facing away from the target (reversed by 180 degrees).
+        // Calculate the error when facing away from the target (reversed by 180
+        // degrees).
         var backFaceError = AngleMath.getDelta(current, target - 180);
         // Choose the smallest magnitude error.
         var error = AngleMath.minMagnitude(frontFaceError, backFaceError);
@@ -57,7 +60,8 @@ public class AngleMath {
 
     /**
      * Computes the shortest angle difference considering reversibility.
-     * The method takes into account whether reversing direction might be more efficient.
+     * The method takes into account whether reversing direction might be more
+     * efficient.
      *
      * @param current The current angle.
      * @param target  The target angle.
@@ -89,7 +93,8 @@ public class AngleMath {
     }
 
     /**
-     * Converts an angle from standard position (counter-clockwise from the positive X-axis)
+     * Converts an angle from standard position (counter-clockwise from the positive
+     * X-axis)
      * to an angle from the front of the robot to the right.
      *
      * @param standardPositionAngle The angle in standard position.
@@ -97,7 +102,7 @@ public class AngleMath {
      */
     public static double toTurnAngle(double standardPositionAngle) {
         // Adjust the angle to the robot's perspective.
-        return AngleMath.conformAngle(90 - standardPositionAngle);
+        return AngleMath.conformAngle(standardPositionAngle - 90);
     }
 
     /**

@@ -103,7 +103,7 @@ public class Vector2 {
      * @return The turn angle of the vector in degrees.
      */
     public double getTurnAngleDeg() {
-        return AngleMath.conformAngle(-1 * (getAngleDeg() - 90));
+        return AngleMath.conformAngle(getAngleDeg() - 90);
     }
 
     /**
@@ -135,7 +135,7 @@ public class Vector2 {
      * @return A new Vector2 representing the rotated vector.
      */
     public Vector2 rotate(double degrees) {
-        return Vector2.fromAngleAndMag(getAngleDeg() + degrees, getMagnitude());
+        return Vector2.fromAngleAndMag(getAngleDeg() - degrees, getMagnitude());
     }
 
     /**
@@ -165,5 +165,9 @@ public class Vector2 {
     @Override
     public String toString() {
         return "(" + x + ", " + y + ")";
+    }
+
+    public Vector2 mapDimentions(Mapper<Double, Double> mapper) {
+        return new Vector2(mapper.map(x), mapper.map(y));
     }
 }

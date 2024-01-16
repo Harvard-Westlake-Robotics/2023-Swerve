@@ -38,7 +38,7 @@ public class AutonomousDrive extends ScheduledComponent {
         // Initialize the target position and angle to the current position and angle.
         this.targetX = pos.getPosition().x;
         this.targetY = pos.getPosition().y;
-        this.targetAngle = pos.getAngle();
+        this.targetAngle = pos.getTurnAngle();
     }
 
     /**
@@ -60,7 +60,7 @@ public class AutonomousDrive extends ScheduledComponent {
     public void reset() {
         targetX = pos.getPosition().x;
         targetY = pos.getPosition().y;
-        targetAngle = AngleMath.toTurnAngle(pos.getAngle());
+        targetAngle = pos.getTurnAngle();
         xController.reset();
         yController.reset();
         turnController.reset();
@@ -79,10 +79,10 @@ public class AutonomousDrive extends ScheduledComponent {
         double xCorrect = xController.solve(targetX - pos.getPosition().x);
         double yCorrect = yController.solve(targetY - pos.getPosition().y);
         double turnCorrect = turnController
-                .solve(AngleMath.getDelta(AngleMath.toTurnAngle(pos.getAngle()), targetAngle));
+                .solve(AngleMath.getDelta(pos.getTurnAngle(), targetAngle));
 
         // Adjust the correction vectors for the robot's current orientation.
-        Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-pos.getAngle());
+        Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-pos.getTurnAngle());
 
         // Periodically print debugging information to the console.
         deSpam.exec(() -> {
@@ -99,6 +99,7 @@ public class AutonomousDrive extends ScheduledComponent {
         else
             drive.stopGoPower();
     }
+
     @Override
     protected void cleanUp() {
     }

@@ -23,7 +23,7 @@ public class ImuDrivePositioning extends ScheduledComponent implements Positioni
 
     // Returns the current orientation angle from the IMU.
     @Override
-    public double getAngle() {
+    public double getTurnAngle() {
         return imu.getTurnAngle();
     }
 
@@ -55,8 +55,8 @@ public class ImuDrivePositioning extends ScheduledComponent implements Positioni
     protected void tick(double secsSinceLastTick) {
         x.addPos(getPosition().x); // Adds the current x position to the history
         y.addPos(getPosition().y); // Adds the current y position to the history
-        angle.addPos(getAngle()); // Adds the current angle to the history
-        drive.forceSetAngle(getAngle());
+        angle.addPos(getTurnAngle()); // Adds the current angle to the history
+        drive.forceSetAngle(getTurnAngle());
     }
 
     protected void cleanUp() {

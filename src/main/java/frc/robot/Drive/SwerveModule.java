@@ -1,4 +1,5 @@
 package frc.robot.Drive;
+
 import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Util.AngleMath;
 
@@ -8,7 +9,7 @@ import frc.robot.Util.AngleMath;
  */
 public class SwerveModule {
     private Falcon turn; // Motor responsible for turning the module.
-    private Falcon go;   // Motor responsible for driving the module forward.
+    private Falcon go; // Motor responsible for driving the module forward.
 
     /**
      * Constructs a SwerveModule with specified motors for turning and driving.
@@ -22,9 +23,10 @@ public class SwerveModule {
 
         // Set current limits on the motors to protect them from drawing too much power.
         turn.setCurrentLimit(35); // The current limit for the turning motor.
-        go.setCurrentLimit(52);   // The current limit for the driving motor.
+        go.setCurrentLimit(52); // The current limit for the driving motor.
 
-        // Reset the encoders on both motors, establishing the current position as the zero point.
+        // Reset the encoders on both motors, establishing the current position as the
+        // zero point.
         turn.resetEncoder();
         go.resetEncoder();
     }
@@ -70,7 +72,7 @@ public class SwerveModule {
      */
     public double getTurnReading() {
         // Normalize the angle to be within the range (-180, 180].
-        return AngleMath.conformAngle(getUnconformedTurnReading()); 
+        return AngleMath.conformAngle(getUnconformedTurnReading());
     }
 
     /**
@@ -83,13 +85,15 @@ public class SwerveModule {
     /**
      * Gets the distance the module has traveled in inches.
      * 
-     * @return The distance traveled by the driving motor, adjusted for wheel rotation.
+     * @return The distance traveled by the driving motor, adjusted for wheel
+     *         rotation.
      */
     public double getGoReading() {
         // Calculate the compensation for wheel turns based on the turn angle.
-        final double turnCompensation = 3.75 * (getUnconformedTurnReading() / 180.0);
+        final double turnCompensation = 0; // 3.75 * (getUnconformedTurnReading() / 360.0);
         // Convert the encoder reading to inches traveled.
-        return turnCompensation + (go.getDegrees() / 360.0) / 6.75 * (3.82 * Math.PI); 
-        // Note: 6.75 motor rotations per 1 wheel rotation, wheel diameter is 3.82 inches.
+        return turnCompensation + (go.getDegrees() / 360.0) / 6.75 * (3.82 * Math.PI);
+        // Note: 6.75 motor rotations per 1 wheel rotation, wheel diameter is 3.82
+        // inches.
     }
 }
