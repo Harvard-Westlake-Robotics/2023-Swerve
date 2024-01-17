@@ -1,6 +1,5 @@
 package frc.robot;
 
-import frc.robot.Auto.Positioning.PositioningSystem;
 import frc.robot.Core.RobotPolicy;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
@@ -24,10 +23,10 @@ public class RobotContainer {
     static RobotPolicy init() {
         PositionedDrive drive;
         var imu = new Imu(18);
-        var turnPD = new PDController(new PDConstant(0.05, 0));
+        var turnPD = new PDController(new PDConstant(0.03, 0.8));
 
         {
-            var placeholderConstant = new PDConstant(0.1, 0);
+            var placeholderConstant = new PDConstant(0, 0);
             var leftBackEncoder = new AbsoluteEncoder(21, 68.203125, false).setOffset(-90);
             var leftBackTurn = new Falcon(8, true);
             var leftBackGo = new Falcon(7, false);
@@ -66,9 +65,12 @@ public class RobotContainer {
                 drive.setAlignmentThreshold(0.5);
                 FieldPositioning fieldPositioning = new FieldPositioning(drive, imu, 0.0);
 
+                var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
+                drive.setConstants(constants);
+
                 Scheduler.registerTick(() -> {
                     final var displacementFromTar = new Vector2(327.87, 34.25).minus(fieldPositioning.getPosition());
-                    // 282.1238544369317, 32.670822887202704
+                    // 2 82.1238544369317, 32.670822887202704
                     var correction = -turnPD.solve(AngleMath.getDelta(displacementFromTar.getTurnAngleDeg() + 90,
                             fieldPositioning.getTurnAngle()));
                     dspam.exec(() -> {
