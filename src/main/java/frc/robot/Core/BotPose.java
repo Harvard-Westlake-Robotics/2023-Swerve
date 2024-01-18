@@ -32,6 +32,15 @@ public class BotPose extends Schedulable {
         return predictedPosition;
     }
 
+    public static double predictYaw(double angularVelocity) {
+        long currentTimeSinceEpoch = System.currentTimeMillis();
+        long dataUsedLatency = currentTimeSinceEpoch - tickTimeSinceEpoch;
+        double finalLatency = latency + dataUsedLatency;
+        double predictedAngleChange = angularVelocity * finalLatency;
+        double predictedAngle = yaw + predictedAngleChange;
+        return predictedAngle;
+    }
+
     public void end() {
 
     }
