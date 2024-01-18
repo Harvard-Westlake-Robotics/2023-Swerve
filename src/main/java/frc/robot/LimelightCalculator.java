@@ -5,6 +5,7 @@ import frc.robot.Devices.LimeLight;
 import frc.robot.Core.Time;
 import frc.robot.Auto.Positioning.FieldPositioning;
 import frc.robot.Core.Schedulable;
+import frc.robot.Core.BotPose;
 
 public class LimelightCalculator extends Schedulable {
     double latency;
@@ -99,6 +100,7 @@ public class LimelightCalculator extends Schedulable {
     }
 
     public void tick(double dTime) {
+        dTime *= 1000; // We want ms!
         if (previousXPos != null && previousYPos != null && previousAngle != null) {
             this.xVelocity = (positioning.getPosition().x - previousXPos) / dTime;
             this.yVelocity = (positioning.getPosition().y - previousYPos) / dTime;

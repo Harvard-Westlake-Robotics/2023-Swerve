@@ -79,6 +79,11 @@ public class LimeLight {
         return botposeArray[6];
     }
 
+    public static long getLastReceiveTime() {
+        long lastReceiveTime = botpose.getLastChange();
+        return lastReceiveTime;
+    }
+
     public static double getVerticalD() {
         double y = ty.getDouble(0.0);
         return y;
