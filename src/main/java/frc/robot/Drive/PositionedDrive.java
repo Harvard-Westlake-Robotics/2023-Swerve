@@ -90,7 +90,7 @@ public class PositionedDrive extends Drive {
                 .add(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist))
                 .multiply(0.25);
 
-        var driveInches = driveInchesRobot.rotate(-1 * AngleMath.toTurnAngle(-angle));
+        Vector2 driveInches = driveInchesRobot.rotate(-1 * AngleMath.toTurnAngle(-angle));
 
         x += driveInches.x;
         y += driveInches.y;
