@@ -60,15 +60,10 @@ public class PositionedDrive extends Drive {
     @Override
     public void tick(double dTime) {
         // Calculate the distance each wheel has traveled since the last update.
-        // double frontRightDist = lastWheelPositions[0][1] - frontRight.getDist();
-        // double frontLeftDist = lastWheelPositions[1][1] - frontLeft.getDist();
-        // double backLeftDist = lastWheelPositions[2][1] - backLeft.getDist();
-        // double backRightDist = lastWheelPositions[3][1] - backRight.getDist();
-
-        double frontRightDist = lastWheelPositions[0][1];
-        double frontLeftDist = lastWheelPositions[1][1];
-        double backLeftDist = lastWheelPositions[2][1];
-        double backRightDist = lastWheelPositions[3][1];
+        double frontRightDist = lastWheelPositions[0][1] - frontRight.getDist();
+        double frontLeftDist = lastWheelPositions[1][1] - frontLeft.getDist();
+        double backLeftDist = lastWheelPositions[2][1] - backLeft.getDist();
+        double backRightDist = lastWheelPositions[3][1] - backRight.getDist();
 
         // Calculate the contribution of each wheel to the robot's rotation.
         // double frontRightTurn = getTurnVec(1)
