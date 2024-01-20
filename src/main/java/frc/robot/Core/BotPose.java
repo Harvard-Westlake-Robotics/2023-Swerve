@@ -1,17 +1,14 @@
-import frc.robot.Core.Schedulable;
+package frc.robot.Core;
+
 import frc.robot.Devices.LimeLight;
 import frc.robot.Util.Vector2;
 
-public class BotPose extends Schedulable {
+public class BotPose {
     private static double botPositionX, botPositionY, botPositionZ, pitch, yaw, roll;
     private static double retrievedLatency;
     private static long tickTimeSinceEpoch;
 
-    public void start() {
-
-    }
-
-    public void tick(double dTime) {
+    public static void tick() {
         botPositionX = LimeLight.getRobotX();
         botPositionY = LimeLight.getRobotY();
         botPositionZ = LimeLight.getRobotZ();
@@ -40,9 +37,5 @@ public class BotPose extends Schedulable {
         double predictedAngleChange = angularVelocity * finalLatency;
         double predictedAngle = yaw + predictedAngleChange;
         return predictedAngle;
-    }
-
-    public void end() {
-
     }
 }

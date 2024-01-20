@@ -1,5 +1,6 @@
 package frc.robot;
 
+import frc.robot.Core.BotPose;
 import frc.robot.Core.RobotPolicy;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
@@ -67,6 +68,10 @@ public class RobotContainer {
 
                 var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
                 drive.setConstants(constants);
+
+                Scheduler.registerTick(() -> {
+                    BotPose.tick();
+                });
 
                 Scheduler.registerTick(() -> {
                     final var displacementFromTar = new Vector2(327.87, 34.25).minus(fieldPositioning.getPosition());
