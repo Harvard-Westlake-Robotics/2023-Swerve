@@ -1,4 +1,5 @@
-import frc.robot.Core.*;
+package frc.robot.Core;
+
 import frc.robot.Devices.LimeLight;
 import frc.robot.Util.Vector2;
 
