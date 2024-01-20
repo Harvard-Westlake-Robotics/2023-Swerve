@@ -5,7 +5,6 @@ import frc.robot.Devices.LimeLight;
 import frc.robot.Core.Time;
 import frc.robot.Auto.Positioning.FieldPositioning;
 import frc.robot.Core.Schedulable;
-import frc.robot.Core.BotPose;
 
 public class LimelightCalculator extends Schedulable {
     double latency;

@@ -66,15 +66,22 @@ public class PositionedDrive extends Drive {
         double backRightDist = lastWheelPositions[3][1] - backRight.getDist();
 
         // Calculate the contribution of each wheel to the robot's rotation.
-        double frontRightTurn = getTurnVec(1)
-                .dotProduct(Vector2.fromAngleAndMag(frontRight.getAngle(), frontRightDist));
-        double frontLeftTurn = getTurnVec(2).dotProduct(Vector2.fromAngleAndMag(frontLeft.getAngle(), frontLeftDist));
-        double backLeftTurn = getTurnVec(3).dotProduct(Vector2.fromAngleAndMag(backLeft.getAngle(), backLeftDist));
-        double backRightTurn = getTurnVec(4).dotProduct(Vector2.fromAngleAndMag(backRight.getAngle(), backRightDist));
+        // double frontRightTurn = getTurnVec(1)
+        // .dotProduct(Vector2.fromAngleAndMag(frontRight.getAngle(), frontRightDist));
+        // double frontLeftTurn =
+        // getTurnVec(2).dotProduct(Vector2.fromAngleAndMag(frontLeft.getAngle(),
+        // frontLeftDist));
+        // double backLeftTurn =
+        // getTurnVec(3).dotProduct(Vector2.fromAngleAndMag(backLeft.getAngle(),
+        // backLeftDist));
+        // double backRightTurn =
+        // getTurnVec(4).dotProduct(Vector2.fromAngleAndMag(backRight.getAngle(),
+        // backRightDist));
 
         // Average the wheel turns to get the robot's rotation.
-        double turnInches = (frontRightTurn + frontLeftTurn + backLeftTurn + backRightTurn) / 4;
-        double turnDegrees = turnInches / (circumferenceInches) * 360.0;
+        // double turnInches = (frontRightTurn + frontLeftTurn + backLeftTurn +
+        // backRightTurn) / 4;
+        // double turnDegrees = turnInches / (circumferenceInches) * 360.0;
 
         // Calculate the robot's movement in inches based on the wheels' contributions.
         Vector2 driveInchesRobot = Vector2.fromAngleAndMag(frontRight.getAngle(), frontRightDist)
@@ -87,7 +94,7 @@ public class PositionedDrive extends Drive {
 
         x += driveInches.x;
         y += driveInches.y;
-        angle += turnDegrees;
+        // angle += turnDegrees;
 
         updateLastWheelPositions();
 
