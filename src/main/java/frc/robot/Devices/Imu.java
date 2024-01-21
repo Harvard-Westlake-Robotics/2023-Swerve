@@ -2,11 +2,13 @@ package frc.robot.Devices;
 
 import com.ctre.phoenixpro.hardware.Pigeon2;
 
+import frc.robot.Core.ScheduledComponent;
+
 /**
  * The Imu class encapsulates the Pigeon2 Inertial Measurement Unit (IMU) sensor functionality.
  * It provides methods to access the yaw, pitch, and roll values of the robot's orientation.
  */
-public class Imu {
+public class Imu extends ScheduledComponent {
     private Pigeon2 imu; // The Pigeon2 IMU sensor.
 
     /**
@@ -63,5 +65,25 @@ public class Imu {
 
     public void setYaw(double val) {
         imu.setYaw(val);
+    }
+
+    private Double lastReading;
+    private double yawDeltaThisTick;
+
+    @Override
+    protected void tick(double dTime) {
+        double currentReading = imu.getYaw().getValue();
+        lastReading = currentReading;
+
+        yawDeltaThisTick = currentReading - lastReading;
+    }
+
+    public double getYawDeltaThisTick() {
+        return yawDeltaThisTick;
+    }
+
+    @Override
+    protected void cleanUp() {
+        
     }
 }

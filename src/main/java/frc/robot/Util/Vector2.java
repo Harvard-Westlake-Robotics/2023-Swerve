@@ -135,7 +135,7 @@ public class Vector2 {
      * @return A new Vector2 representing the rotated vector.
      */
     public Vector2 rotate(double degrees) {
-        return Vector2.fromAngleAndMag(getAngleDeg() - degrees, getMagnitude());
+        return Vector2.fromAngleAndMag(getAngleDeg() + degrees, getMagnitude());
     }
 
     /**

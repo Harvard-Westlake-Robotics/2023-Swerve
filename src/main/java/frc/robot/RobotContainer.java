@@ -1,6 +1,5 @@
 package frc.robot;
 
-import frc.robot.Core.BotPose;
 import frc.robot.Core.RobotPolicy;
 import frc.robot.Core.Scheduler;
 import frc.robot.Devices.AbsoluteEncoder;
@@ -23,6 +22,7 @@ public class RobotContainer {
 
     static RobotPolicy init() {
         PositionedDrive drive;
+        LimeLight limeLight;
         var imu = new Imu(18);
         var turnPD = new PDController(new PDConstant(0.03, 0.8));
 
@@ -52,7 +52,10 @@ public class RobotContainer {
             var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
             var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
+            var limeLight1 = new LimeLight();
+
             drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23.0, 23.0);
+            limeLight = limeLight1;
         }
         var dspam = new DeSpam(0.3);
 
@@ -61,17 +64,13 @@ public class RobotContainer {
         return new RobotPolicy() {
 
             public void teleop() {
-                LimeLight.setCamMode(true);
+                limeLight.setCamMode(true);
 
                 drive.setAlignmentThreshold(0.5);
-                FieldPositioning fieldPositioning = new FieldPositioning(drive, imu, 0.0);
-
+                var fieldPositioning = new FieldPositioning(drive, imu, limeLight);
+                
                 var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
                 drive.setConstants(constants);
-
-                Scheduler.registerTick(() -> {
-                    BotPose.tick();
-                });
 
                 Scheduler.registerTick(() -> {
                     final var displacementFromTar = new Vector2(327.87, 34.25).minus(fieldPositioning.getPosition());
@@ -99,7 +98,7 @@ public class RobotContainer {
             }
 
             public void autonomous() {
-                LimeLight.setCamMode(true);
+                limeLight.setCamMode(true);
             }
 
             public void test() {
@@ -165,4 +164,9 @@ public class RobotContainer {
             }
         };
     }
+
+	@Override
+	public String toString() {
+		return "RobotContainer [Michael Barr Was Here]";
+	}
 }
