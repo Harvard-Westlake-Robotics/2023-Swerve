@@ -6,8 +6,4 @@ public interface PositioningSystem {
     double getTurnAngle();
 
     Vector2 getPosition();
-
-    Vector2 getVelocity();
-
-    Vector2 getAcceleration();
 }

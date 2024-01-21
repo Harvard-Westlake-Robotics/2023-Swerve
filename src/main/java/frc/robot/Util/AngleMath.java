@@ -24,6 +24,14 @@ public class AngleMath {
         return min;
     }
 
+    public static double blendAngles(double angleOne, double angleTwo, double blendFac) {
+        if (blendFac < 0 || blendFac > 1) {
+            throw new IllegalArgumentException("Blend factor must be between 0 and 1");
+        }
+        double delta = getDelta(angleOne, angleTwo);
+        return AngleMath.conformAngle(angleOne + delta * blendFac);
+    }
+
     /**
      * Computes the shortest distance (delta) between two angles.
      *
