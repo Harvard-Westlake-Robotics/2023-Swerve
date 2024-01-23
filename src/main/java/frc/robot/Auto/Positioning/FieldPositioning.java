@@ -15,18 +15,20 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
     Imu imu;
     LimeLight limeLight;
 
-    public FieldPositioning(PositionedDrive drive, Imu imu, LimeLight limeLight) {
+    public FieldPositioning(PositionedDrive drive, Imu imu, LimeLight limeLight, Position startPos) {
         this.drive = drive;
         this.imu = imu;
         this.limeLight = limeLight;
+        positionHistory.add(0, startPos);
     }
 
-    double lastLimelightFrameTime = 0;
+    double lastLimelightFrameTime = Double.NEGATIVE_INFINITY;
     Position lastLimelightFrameOffset = new Position(0, new Vector2(0, 0));
     LinkedList<Position> positionHistory = new LinkedList<>();
 
     private boolean isRationalLimelightFrame() {
-        final boolean isAllZero = limeLight.getRobotX() == 0 && limeLight.getRobotY() == 0 && limeLight.getRobotZ() == 0;
+        final boolean isAllZero = limeLight.getRobotX() == 0 && limeLight.getRobotY() == 0
+                && limeLight.getRobotZ() == 0;
         return limeLight.botPoseChanged() && !isAllZero;
     }
 
@@ -43,7 +45,7 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
     public Position predictedPositionAtLastLimelightFrame() {
         long currentTimeSinceEpoch = System.currentTimeMillis();
         long receiveTimeSinceEpoch = limeLight.getLastReceiveTime();
-        double latencyImageTakenToNow = limeLight.getRobotLatency() + (currentTimeSinceEpoch - receiveTimeSinceEpoch);
+        double latencyImageTakenToNow = limeLight.getRobotLatency() / 1000;
 
         int predictedPositionIndex = (int) (latencyImageTakenToNow / 0.02);
 
@@ -59,9 +61,10 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
     protected void tick(double dTime) {
         Position lastPosition = positionHistory.getFirst();
 
+        final double currentAngle = lastPosition.angle + imu.getYawDeltaThisTick();
         positionHistory.add(0, new Position(
-                lastPosition.angle + imu.getYawDeltaThisTick(),
-                lastPosition.position.add(drive.movementSinceLastTick.rotate(lastPosition.angle))));
+                currentAngle,
+                lastPosition.position.add(drive.movementSinceLastTick.rotate(currentAngle - 90))));
 
         // makes sure position history doesn't get too long
         if (positionHistory.size() > 5 / 0.02) {
@@ -72,7 +75,9 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
             final double timeSinceLastFrame = Time.getTimeSincePower() - lastLimelightFrameTime;
             lastLimelightFrameTime = Time.getTimeSincePower();
             final Position limelightPositionAtFrame = limeLight.getRobotPosition();
-            final Position predictedPositionAtFrame = predictedPositionAtLastLimelightFrame();
+            Position predictedPositionAtFrame = predictedPositionAtLastLimelightFrame();
+            if (predictedPositionAtFrame == null)
+                predictedPositionAtFrame = positionHistory.getFirst();
 
             Position adjustedPosition;
             // if the time since the last reading is more than 20 ms, we scrub the

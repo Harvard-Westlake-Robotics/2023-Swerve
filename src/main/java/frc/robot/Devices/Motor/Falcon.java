@@ -13,7 +13,6 @@ import frc.robot.Util.LERP;
  */
 public class Falcon extends AnyMotor {
     private TalonFX falcon; // The Talon FX motor controller object.
-    double stallVolt; // The voltage at which the motor is considered to be stalling.
 
     final int id; // Unique identifier for the motor controller.
 
@@ -53,7 +52,6 @@ public class Falcon extends AnyMotor {
 
         this.falcon = new TalonFX(deviceNumber);
         falcon.setInverted(false);
-        this.stallVolt = isStallable ? 3 : 0; // Set stall voltage if the motor is stallable.
     }
 
     /**
@@ -80,15 +78,6 @@ public class Falcon extends AnyMotor {
             falcon.setVoltage(0);
             return;
         }
-        double fac = (volts > 0) ? 1 : -1; // Determine the direction of the voltage.
-        if (Math.abs(volts) < stallVolt / 2) {
-            falcon.setVoltage(0); // If voltage is below half stall, turn off motor.
-            return;
-        } else if (Math.abs(volts) < stallVolt) {
-            falcon.setVoltage(stallVolt * fac); // Apply stall voltage if voltage is below stall level.
-            return;
-        }
-
         falcon.setVoltage(volts); // Apply the full voltage if above stall level.
     }
 
