@@ -16,6 +16,7 @@ import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.ScaleInput;
 import frc.robot.Util.Vector2;
+import frc.robot.Auto.Drive.AutonomousDrive;
 import frc.robot.Auto.Positioning.*;
 
 public class RobotContainer {
@@ -59,7 +60,8 @@ public class RobotContainer {
         }
         var dspam = new DeSpam(0.3);
 
-        var con = new BetterPS4(0);
+        final var con = new BetterPS4(0);
+        final var fieldPositioning = new FieldPositioning(drive, imu, limeLight, new Position(0, new Vector2(0, 0)));
 
         return new RobotPolicy() {
 
@@ -67,8 +69,6 @@ public class RobotContainer {
                 limeLight.setCamMode(true);
 
                 drive.setAlignmentThreshold(0.5);
-                var fieldPositioning = new FieldPositioning(drive, imu, limeLight, new Position(0, new Vector2(0, 0)));
-
                 var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
                 drive.setConstants(constants);
 
@@ -98,7 +98,18 @@ public class RobotContainer {
             }
 
             public void autonomous() {
+                drive.setAlignmentThreshold(0.5);
                 limeLight.setCamMode(true);
+
+                AutonomousDrive autoD = new AutonomousDrive(drive, fieldPositioning, new PDConstant(5, 0),
+                        new PDConstant(1, 0));
+
+                Scheduler.setTimeout(() -> {
+                    drive.reset();
+                    Scheduler.registerTick(() -> {
+                        autoD.targetX -= 0.5 * 0.02;
+                    });
+                }, 2);
             }
 
             public void test() {

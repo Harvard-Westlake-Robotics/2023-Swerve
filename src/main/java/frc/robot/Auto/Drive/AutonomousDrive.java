@@ -82,22 +82,23 @@ public class AutonomousDrive extends ScheduledComponent {
                 .solve(AngleMath.getDelta(pos.getTurnAngle(), targetAngle));
 
         // Adjust the correction vectors for the robot's current orientation.
-        Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-pos.getTurnAngle());
+        Vector2 goCorrect = new Vector2(xCorrect, yCorrect).rotate(-pos.getTurnAngle() + 90);
 
         // Periodically print debugging information to the console.
         deSpam.exec(() -> {
-            System.out.println("targetX: " + targetX + ", currentX: " + pos.getPosition().x);
+            System.out.println("targetX: " + targetX + ", currentX: " + pos.getPosition().x + " correct: "
+                    + goCorrect.getMagnitude());
             // Debugging information for targetY, currentY, targetAngle, and currentAngle
             // can be added here.
-            System.out.println(goCorrect.getTurnAngleDeg());
         });
 
         // Apply the power if the error is within acceptable bounds, otherwise stop the
         // robot.
-        if (2 < turnController.getLastError() / 3 + xController.getLastError() + yController.getLastError())
-            drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect, false);
-        else
-            drive.stopGoPower();
+        // if (2 < turnController.getLastError() / 3 + xController.getLastError() +
+        // yController.getLastError())
+        drive.power(goCorrect.getMagnitude(), goCorrect.getAngleDeg(), turnCorrect, false);
+        // else
+        // drive.stopGoPower();
     }
 
     @Override
