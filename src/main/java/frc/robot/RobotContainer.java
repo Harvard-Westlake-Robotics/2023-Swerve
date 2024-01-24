@@ -25,7 +25,7 @@ public class RobotContainer {
         PositionedDrive drive;
         LimeLight limeLight;
         var imu = new Imu(18);
-        var turnPD = new PDController(new PDConstant(0.03, 0.2));
+        var turnPD = new PDController(new PDConstant(0.1, 0));
 
         {
             var placeholderConstant = new PDConstant(0, 0);
@@ -100,14 +100,17 @@ public class RobotContainer {
             public void autonomous() {
                 drive.setAlignmentThreshold(0.5);
                 limeLight.setCamMode(true);
+                var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
+                drive.setConstants(constants);
 
-                AutonomousDrive autoD = new AutonomousDrive(drive, fieldPositioning, new PDConstant(5, 0),
-                        new PDConstant(1, 0));
+                AutonomousDrive autoD = new AutonomousDrive(drive, fieldPositioning,
+                        new PDConstant(0.5, 0),
+                        new PDConstant(0.2, 0));
 
                 Scheduler.setTimeout(() -> {
                     drive.reset();
                     Scheduler.registerTick(() -> {
-                        autoD.targetX -= 0.5 * 0.02;
+                        autoD.targetX += 1.5 * 0.02;
                     });
                 }, 2);
             }
