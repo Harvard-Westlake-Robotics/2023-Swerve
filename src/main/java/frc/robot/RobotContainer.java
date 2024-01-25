@@ -67,7 +67,7 @@ public class RobotContainer {
                 limeLight.setCamMode(true);
 
                 drive.setAlignmentThreshold(0.5);
-                var fieldPositioning = new FieldPositioning(drive, imu, limeLight);
+                var fieldPositioning = new FieldPositioning(drive, imu, limeLight, new Position(0, new Vector2(0, 0)));
                 
                 var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
                 drive.setConstants(constants);
