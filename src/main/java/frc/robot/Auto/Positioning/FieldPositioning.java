@@ -9,17 +9,25 @@ import frc.robot.Devices.LimeLight;
 import frc.robot.Drive.PositionedDrive;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.Vector2;
+import frc.robot.Util.LERP;
 
 public class FieldPositioning extends ScheduledComponent implements PositioningSystem {
     PositionedDrive drive;
     Imu imu;
     LimeLight limeLight;
+    final double correctionTime = 0.5;
+    final double timePerTick = 0.02;
+    final int ticksPerLerp = (int)Math.ceil(correctionTime / timePerTick);
+    // LERP[] lerp; SCREW YOU LERP CLASS UR NOT FLEXIBLE ENOUGH + BOZO
+    Position[] currentCorrections;
 
     public FieldPositioning(PositionedDrive drive, Imu imu, LimeLight limeLight, Position startPos) {
         this.drive = drive;
         this.imu = imu;
         this.limeLight = limeLight;
         positionHistory.add(0, startPos);
+        // lerp = new LERP[ticksPerLerp];
+        currentCorrections = new Position[ticksPerLerp];
     }
 
     double lastLimelightFrameTime = Double.NEGATIVE_INFINITY;
@@ -88,8 +96,18 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
                 adjustedPosition = limelightPositionAtFrame;
             }
             Position offsetPosition = adjustedPosition.difference(predictedPositionAtFrame);
-
-            positionHistory.replaceAll(position -> position.add(offsetPosition));
+            // Shift everything over to the right, eliminating the last element
+            for (int i = currentCorrections.length - 1; i > 0; i--)
+            {
+                offsetPosition = offsetPosition.difference(currentCorrections[i].scale(i / ticksPerLerp));
+                currentCorrections[i] = currentCorrections[i - 1];
+            }
+            currentCorrections[0] = offsetPosition;
+            for (int i = 0; i < currentCorrections.length; i++)
+            {
+                positionHistory.replaceAll(position -> position.add(currentCorrections[i].scale(timePerTick)));
+            }
+            // positionHistory.replaceAll(position -> position.add(offsetPosition));
         }
     }
 
