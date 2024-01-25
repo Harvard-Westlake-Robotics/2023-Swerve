@@ -25,7 +25,7 @@ public class RobotContainer {
         PositionedDrive drive;
         LimeLight limeLight;
         var imu = new Imu(18);
-        var turnPD = new PDController(new PDConstant(0.1, 0));
+        var turnPD = new PDController(new PDConstant(0.1, 0.01));
 
         {
             var placeholderConstant = new PDConstant(0, 0);

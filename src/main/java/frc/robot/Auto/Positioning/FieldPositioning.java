@@ -14,6 +14,7 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
     PositionedDrive drive;
     Imu imu;
     LimeLight limeLight;
+    LERP lerp;
 
     public FieldPositioning(PositionedDrive drive, Imu imu, LimeLight limeLight, Position startPos) {
         this.drive = drive;

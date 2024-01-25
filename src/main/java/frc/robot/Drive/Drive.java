@@ -168,7 +168,7 @@ public class Drive extends ScheduledComponent {
         double error = 0;
         double total = 0;
         if (moduleTargets != null) {
-            System.out.println("voltage " + moduleTargets[0].getMagnitude());
+            // System.out.println("voltage " + moduleTargets[0].getMagnitude());
             int quadrant = 1;
             for (SwerveModulePD module : new SwerveModulePD[] { frontRight, frontLeft, backLeft, backRight }) {
                 final var tar = moduleTargets[quadrant - 1];
