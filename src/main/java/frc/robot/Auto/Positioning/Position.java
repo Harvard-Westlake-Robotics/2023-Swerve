@@ -29,4 +29,8 @@ public class Position {
     public Position add(Position other) {
         return new Position(AngleMath.conformAngle(other.angle + this.angle), this.position.add(other.position));
     }
+
+    public Position scale(double scaleFactor) {
+        return new Position(AngleMath.conformAngle(this.angle * scaleFactor), this.position.multiply(scaleFactor));
+    }
 }

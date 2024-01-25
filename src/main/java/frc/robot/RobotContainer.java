@@ -16,7 +16,6 @@ import frc.robot.Util.PDConstant;
 import frc.robot.Util.PDController;
 import frc.robot.Util.ScaleInput;
 import frc.robot.Util.Vector2;
-import frc.robot.Auto.Drive.AutonomousDrive;
 import frc.robot.Auto.Positioning.*;
 
 public class RobotContainer {
@@ -25,7 +24,7 @@ public class RobotContainer {
         PositionedDrive drive;
         LimeLight limeLight;
         var imu = new Imu(18);
-        var turnPD = new PDController(new PDConstant(0.1, 0.01));
+        var turnPD = new PDController(new PDConstant(0.03, 0.8));
 
         {
             var placeholderConstant = new PDConstant(0, 0);
@@ -53,15 +52,14 @@ public class RobotContainer {
             var rightFrontRaw = new SwerveModule(rightFrontTurn, rightFrontGo);
             var rightFront = new SwerveModulePD(rightFrontRaw, placeholderConstant, rightFrontEncoder);
 
-            limeLight = new LimeLight();
+            var limeLight1 = new LimeLight();
 
             drive = new PositionedDrive(leftFront, rightFront, leftBack, rightBack, 23.0, 23.0);
-
+            limeLight = limeLight1;
         }
         var dspam = new DeSpam(0.3);
 
-        final var con = new BetterPS4(0);
-        final var fieldPositioning = new FieldPositioning(drive, imu, limeLight, new Position(0, new Vector2(0, 0)));
+        var con = new BetterPS4(0);
 
         return new RobotPolicy() {
 
@@ -69,6 +67,8 @@ public class RobotContainer {
                 limeLight.setCamMode(true);
 
                 drive.setAlignmentThreshold(0.5);
+                var fieldPositioning = new FieldPositioning(drive, imu, limeLight);
+                
                 var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
                 drive.setConstants(constants);
 
@@ -98,21 +98,7 @@ public class RobotContainer {
             }
 
             public void autonomous() {
-                drive.setAlignmentThreshold(0.5);
                 limeLight.setCamMode(true);
-                var constants = new PDConstant(0.18, 0).withMagnitude(0.5);
-                drive.setConstants(constants);
-
-                AutonomousDrive autoD = new AutonomousDrive(drive, fieldPositioning,
-                        new PDConstant(0.5, 0),
-                        new PDConstant(0.2, 0));
-
-                Scheduler.setTimeout(() -> {
-                    drive.reset();
-                    Scheduler.registerTick(() -> {
-                        autoD.targetX += 1.5 * 0.02;
-                    });
-                }, 2);
             }
 
             public void test() {
@@ -179,8 +165,8 @@ public class RobotContainer {
         };
     }
 
-    @Override
-    public String toString() {
-        return "RobotContainer [Michael Barr Was Here]";
-    }
+	@Override
+	public String toString() {
+		return "RobotContainer [Michael Barr Was Here]";
+	}
 }
