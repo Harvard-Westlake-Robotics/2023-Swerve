@@ -28,9 +28,6 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
         positionHistory.add(0, startPos);
         // lerp = new LERP[ticksPerLerp];
         currentCorrections = new Position[ticksPerLerp];
-        for (int i = 0; i < currentCorrections.length; i++) {
-            currentCorrections[i] = new Position(0, new Vector2(0, 0));
-        }
     }
 
     double lastLimelightFrameTime = Double.NEGATIVE_INFINITY;
@@ -108,8 +105,7 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
             currentCorrections[0] = offsetPosition;
             for (int i = 0; i < currentCorrections.length; i++)
             {
-                final int temp_i = i;
-                positionHistory.replaceAll(position -> position.add(currentCorrections[temp_i].scale(1.0 / ticksPerLerp)));
+                positionHistory.replaceAll(position -> position.add(currentCorrections[i].scale(timePerTick)));
             }
             // positionHistory.replaceAll(position -> position.add(offsetPosition));
         }
