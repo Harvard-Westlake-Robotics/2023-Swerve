@@ -4,7 +4,7 @@ import frc.robot.Core.ScheduledComponent;
 import frc.robot.Devices.AbsoluteEncoder;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.PDConstant;
-import frc.robot.Util.PDController;
+import frc.robot.Util.PIDController;
 
 /**
  * The SwerveModulePD class is responsible for controlling a single swerve
@@ -14,7 +14,7 @@ import frc.robot.Util.PDController;
  */
 public class SwerveModulePD extends ScheduledComponent {
     SwerveModule swerve; // The swerve module being controlled.
-    PDController controller;// The PD controller for the module's turning mechanism.
+    PIDController controller;// The PD controller for the module's turning mechanism.
     AbsoluteEncoder coder; // The encoder that measures the module's current angle.
 
     public double error; // The current error between the target and actual angles.
@@ -25,7 +25,7 @@ public class SwerveModulePD extends ScheduledComponent {
      * @param constant The PD constants to be used by the controller.
      */
     public void setConstants(PDConstant constant) {
-        controller = new PDController(constant);
+        controller = new PIDController(constant);
     }
 
     /**
@@ -38,7 +38,7 @@ public class SwerveModulePD extends ScheduledComponent {
      */
     public SwerveModulePD(SwerveModule swerve, PDConstant con, AbsoluteEncoder coder) {
         this.swerve = swerve;
-        this.controller = new PDController(con);
+        this.controller = new PIDController(con);
         this.coder = coder;
     }
 
@@ -94,6 +94,10 @@ public class SwerveModulePD extends ScheduledComponent {
     public void setGoVoltage(double volts) {
         voltage = volts;
         swerve.setGoVoltage(frontFacing ? volts : -volts);
+    }
+
+    public void setVelocity(double velocity) {
+        swerve.setGoVelocity(velocity);
     }
 
     /**

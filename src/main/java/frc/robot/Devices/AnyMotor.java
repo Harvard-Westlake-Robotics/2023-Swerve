@@ -1,5 +1,6 @@
 package frc.robot.Devices;
 
+import frc.robot.Core.ScheduledComponent;
 import frc.robot.Util.MathPlus;
 
 /**
@@ -7,7 +8,7 @@ import frc.robot.Util.MathPlus;
  * functionalities.
  * This class should be extended to implement specific types of motors.
  */
-public abstract class AnyMotor {
+public abstract class AnyMotor extends ScheduledComponent {
     Double maxSlew; // Maximum rate of voltage change over time.
     boolean isReversed; // Flag indicating whether the motor's direction is reversed.
 
@@ -132,7 +133,11 @@ public abstract class AnyMotor {
      * 
      * @param dTime The time delta since the last tick.
      */
-    public void tick(double dTime) {
-        // Implementation would go here for motor updates each control cycle.
+    protected void tick(double dTime) {
+    }
+
+    @Override
+    protected void cleanUp() {
+
     }
 }

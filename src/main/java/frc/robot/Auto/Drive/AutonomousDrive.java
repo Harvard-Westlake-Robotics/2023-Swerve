@@ -1,19 +1,21 @@
 package frc.robot.Auto.Drive;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import frc.robot.Auto.Positioning.PositioningSystem;
 import frc.robot.Core.ScheduledComponent;
 import frc.robot.Drive.PositionedDrive;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
 import frc.robot.Util.PDConstant;
-import frc.robot.Util.PDController;
+import frc.robot.Util.PIDController;
 import frc.robot.Util.Vector2;
 
 public class AutonomousDrive extends ScheduledComponent {
     PositionedDrive drive; // The drive system of the robot.
-    PDController xController; // PID controller for x-axis motion.
-    PDController yController; // PID controller for y-axis motion.
-    PDController turnController; // PID controller for rotational motion.
+    PIDController xController; // PID controller for x-axis motion.
+    PIDController yController; // PID controller for y-axis motion.
+    PIDController turnController; // PID controller for rotational motion.
     PositioningSystem pos; // Positioning system that provides current robot position and angle.
 
     public double targetX; // Target x-coordinate for autonomous movement.
@@ -32,9 +34,9 @@ public class AutonomousDrive extends ScheduledComponent {
             PDConstant turnConstants) {
         this.drive = drive;
         this.pos = pos;
-        this.xController = new PDController(goConstants);
-        this.yController = new PDController(goConstants);
-        this.turnController = new PDController(turnConstants);
+        this.xController = new PIDController(goConstants);
+        this.yController = new PIDController(goConstants);
+        this.turnController = new PIDController(turnConstants);
         // Initialize the target position and angle to the current position and angle.
         this.targetX = pos.getPosition().x;
         this.targetY = pos.getPosition().y;
@@ -88,8 +90,6 @@ public class AutonomousDrive extends ScheduledComponent {
         deSpam.exec(() -> {
             System.out.println("targetX: " + targetX + ", currentX: " + pos.getPosition().x + " correct: "
                     + goCorrect.getMagnitude());
-            // Debugging information for targetY, currentY, targetAngle, and currentAngle
-            // can be added here.
         });
 
         // Apply the power if the error is within acceptable bounds, otherwise stop the
@@ -104,4 +104,5 @@ public class AutonomousDrive extends ScheduledComponent {
     @Override
     protected void cleanUp() {
     }
+
 }

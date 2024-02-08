@@ -2,32 +2,25 @@ package frc.robot.Auto.Positioning;
 
 import java.util.LinkedList;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.Core.ScheduledComponent;
 import frc.robot.Core.Time;
 import frc.robot.Devices.Imu;
 import frc.robot.Devices.LimeLight;
 import frc.robot.Drive.PositionedDrive;
-import frc.robot.Util.AngleMath;
 import frc.robot.Util.Vector2;
-import frc.robot.Util.LERP;
 
 public class FieldPositioning extends ScheduledComponent implements PositioningSystem {
     PositionedDrive drive;
     Imu imu;
     LimeLight limeLight;
     final double correctionTime = 0.5;
-    final double timePerTick = 0.02;
-    final int ticksPerLerp = (int)Math.ceil(correctionTime / timePerTick);
-    // LERP[] lerp; SCREW YOU LERP CLASS UR NOT FLEXIBLE ENOUGH + BOZO
-    Position[] currentCorrections;
 
     public FieldPositioning(PositionedDrive drive, Imu imu, LimeLight limeLight, Position startPos) {
         this.drive = drive;
         this.imu = imu;
         this.limeLight = limeLight;
         positionHistory.add(0, startPos);
-        // lerp = new LERP[ticksPerLerp];
-        currentCorrections = new Position[ticksPerLerp];
     }
 
     double lastLimelightFrameTime = Double.NEGATIVE_INFINITY;
@@ -66,6 +59,14 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
     }
 
     @Override
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        double rotationSpeed = (positionHistory.get(0).angle - positionHistory.get(1).angle) / 0.02;
+        Vector2 translationSpeed = (positionHistory.get(0).position.minus(positionHistory.get(1).position))
+                .multiply(1 / 0.02).rotate(-getTurnAngle());
+        return new ChassisSpeeds(translationSpeed.x, translationSpeed.y, rotationSpeed / 180 * Math.PI);
+    }
+
+    @Override
     protected void tick(double dTime) {
         Position lastPosition = positionHistory.getFirst();
 
@@ -96,18 +97,7 @@ public class FieldPositioning extends ScheduledComponent implements PositioningS
                 adjustedPosition = limelightPositionAtFrame;
             }
             Position offsetPosition = adjustedPosition.difference(predictedPositionAtFrame);
-            // Shift everything over to the right, eliminating the last element
-            for (int i = currentCorrections.length - 1; i > 0; i--)
-            {
-                offsetPosition = offsetPosition.difference(currentCorrections[i].scale(i / ticksPerLerp));
-                currentCorrections[i] = currentCorrections[i - 1];
-            }
-            currentCorrections[0] = offsetPosition;
-            for (int i = 0; i < currentCorrections.length; i++)
-            {
-                positionHistory.replaceAll(position -> position.add(currentCorrections[i].scale(timePerTick)));
-            }
-            // positionHistory.replaceAll(position -> position.add(offsetPosition));
+            positionHistory.replaceAll(e -> e.add(offsetPosition));
         }
     }
 

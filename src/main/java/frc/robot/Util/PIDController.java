@@ -2,15 +2,18 @@ package frc.robot.Util;
 
 /**
  * The PDController class is a Proportional-Derivative controller which computes
- * control values to minimize the error towards a target. It is a type of feedback
+ * control values to minimize the error towards a target. It is a type of
+ * feedback
  * controller commonly used in robotics and control systems.
  */
-public class PDController implements MotionController {
+public class PIDController implements MotionController {
     // Constants for the PD control loop: proportional and derivative gains.
-    PDConstant constant;
+    PIDConstant constant;
 
-    // The last error recorded by the controller in the previous control loop iteration.
+    // The last error recorded by the controller in the previous control loop
+    // iteration.
     double lastError = 0;
+    double accumulatedError = 0;
 
     /**
      * Retrieves the last error that the controller acted upon.
@@ -26,7 +29,11 @@ public class PDController implements MotionController {
      *
      * @param constants The PD constants for the control loop.
      */
-    public PDController(PDConstant constants) {
+    public PIDController(PDConstant constants) {
+        this.constant = constants.toPID();
+    }
+
+    public PIDController(PIDConstant constants) {
         this.constant = constants.clone();
     }
 
@@ -55,11 +62,15 @@ public class PDController implements MotionController {
         // Derivative correction based on the rate of error change.
         double d_correct = constant.kD * (currentError - lastError) / dTime;
 
+        accumulatedError = accumulatedError + currentError * dTime;
+
+        double i_correct = accumulatedError * constant.kI;
+
         // Update the last error for the next iteration.
         lastError = currentError;
 
         // Sum of proportional and derivative corrections.
-        var correction = p_correct + d_correct;
+        var correction = p_correct + d_correct + i_correct;
 
         // If a maximum correction limit is set, enforce it.
         if (constant.max != null && Math.abs(correction) > Math.abs(constant.max)) {
@@ -72,9 +83,11 @@ public class PDController implements MotionController {
 
     /**
      * Resets the controller, clearing the last error value.
-     * This should be done when the controller is no longer being used for the current control target.
+     * This should be done when the controller is no longer being used for the
+     * current control target.
      */
     public void reset() {
         lastError = 0;
+        accumulatedError = 0;
     }
 }

@@ -3,9 +3,12 @@ package frc.robot.Devices.Motor;
 import com.ctre.phoenixpro.configs.CurrentLimitsConfigs;
 import com.ctre.phoenixpro.hardware.TalonFX;
 
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import frc.robot.Devices.AnyMotor;
 import frc.robot.Util.GetDTime;
 import frc.robot.Util.LERP;
+import frc.robot.Util.MotionController;
+import frc.robot.Util.PDConstant;
 
 /**
  * The Falcon class extends the AnyMotor abstract class to provide an interface
@@ -51,7 +54,27 @@ public class Falcon extends AnyMotor {
         this.id = deviceNumber;
 
         this.falcon = new TalonFX(deviceNumber);
+
         falcon.setInverted(false);
+    }
+
+    MotionController con;
+
+    Double targetSpeed;
+
+    public void setVelocityPD(MotionController con) {
+        this.con = con;
+    }
+
+    /**
+     * Sets motor velocity in rotations/sec
+     * 
+     * @param vel
+     */
+    public void setVelocity(double vel) {
+        if (con == null)
+            throw new Error("Motor Controller not configured to control speed");
+        targetSpeed = vel;
     }
 
     /**
@@ -71,13 +94,7 @@ public class Falcon extends AnyMotor {
      * @param volts The desired voltage.
      */
     protected void uSetVoltage(double volts) {
-        enabledLerp.set(falcon.isAlive() ? 1 : 0);
-        enabled = enabledLerp.get() > 0.5;
-        // sends voltages
-        if (!enabled) {
-            falcon.setVoltage(0);
-            return;
-        }
+        targetSpeed = null;
         falcon.setVoltage(volts); // Apply the full voltage if above stall level.
     }
 
@@ -97,7 +114,11 @@ public class Falcon extends AnyMotor {
         falcon.stopMotor();
     }
 
-    boolean enabled = true;
-    LERP enabledLerp = new LERP(1, 0.01);
-    GetDTime sinceCheckedTimeout = new GetDTime();
+    @Override
+    public void tick(double dTime) {
+        if (con != null && targetSpeed != null) {
+            falcon.setVoltage(
+                    con.solve(targetSpeed - falcon.getVelocity().getValue(), dTime));
+        }
+    }
 }

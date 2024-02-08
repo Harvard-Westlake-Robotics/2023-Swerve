@@ -2,6 +2,7 @@ package frc.robot.Drive;
 
 import org.ejml.ops.QuickSort_S32;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.Core.ScheduledComponent;
 import frc.robot.Util.AngleMath;
 import frc.robot.Util.DeSpam;
@@ -66,24 +67,34 @@ public class Drive extends ScheduledComponent {
 
     Vector2[] moduleTargets; // Targets for each module for driving and turning.
 
+    public void fromChassisSpeeds(ChassisSpeeds speeds) {
+        var translationVel = new Vector2(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+        var rotationVel = speeds.omegaRadiansPerSecond / Math.PI * 180;
+        power(translationVel.getMagnitude(), translationVel.getAngleDeg(), rotationVel, false);
+    }
+
     /**
      * Powers the robot's swerve modules to drive and turn according to specified
      * voltages and directions.
      * 
-     * @param goVoltage           Directional power in volts.
-     * @param goDirectionDeg      Direction to go straight in degrees, in standard
-     *                            position.
-     * @param turnVoltage         Rotational power in volts (positive to left).
+     * @param goSpeed             Directional speed in in/sec.
+     * @param goDirectionDeg      Angle to translate towards in degrees
+     * @param turnVelocity        deg/sec
      * @param errorOnLargeVoltage If true, throws an error when voltage exceeds 12V.
      */
-    public void power(double goVoltage, double goDirectionDeg, double turnVoltage, boolean errorOnLargeVoltage) {
+    public void power(double goSpeed, double goDirectionDeg, double turnVelocity, boolean errorOnLargeVoltage) {
         // Validation check for voltage limits.
         if (errorOnLargeVoltage) {
-            if (Math.abs(goVoltage) > 12)
+            if (Math.abs(goSpeed) > 12)
                 throw new Error("Illegally large voltage - goVoltage");
-            if (Math.abs(turnVoltage) > 12)
+            if (Math.abs(turnVelocity) > 12)
                 throw new Error("Illegally large voltage - turnVoltage");
         }
+
+        // converts angular velocity of the robot into a per module linear velocity
+        // (in/sec)
+        turnVelocity = turnVelocity / 180.0 * Math.PI
+                * Math.sqrt(Math.pow(widthInches / 2, 2) + Math.pow(lengthInches / 2, 2));
 
         // Normalize the go direction angle.
         goDirectionDeg = AngleMath.conformAngle(goDirectionDeg);
@@ -95,8 +106,8 @@ public class Drive extends ScheduledComponent {
         // Calculate target vectors for each module based on driving and turning
         // directions.
         for (int quadrant = 1; quadrant <= 4; quadrant++) {
-            var turnVec = getTurnVec(quadrant).multiply(turnVoltage);
-            var goVec = Vector2.fromAngleAndMag(goDirectionDeg, goVoltage);
+            var turnVec = getTurnVec(quadrant).multiply(turnVelocity);
+            var goVec = Vector2.fromAngleAndMag(goDirectionDeg, goSpeed);
             var vec = goVec.add(turnVec);
 
             moduleTargets[quadrant - 1] = vec;
@@ -191,7 +202,7 @@ public class Drive extends ScheduledComponent {
                 }
                 module.setTurnTarget(vec.getTurnAngleDeg());
             } else {
-                module.setGoVoltage(0);
+                module.setVelocity(0);
             }
             quadrant++;
         }

@@ -1,7 +1,9 @@
 package frc.robot.Drive;
 
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import frc.robot.Devices.Motor.Falcon;
 import frc.robot.Util.AngleMath;
+import frc.robot.Util.MotionController;
 
 /**
  * Represents a swerve module, which is part of a swerve drive system.
@@ -17,9 +19,11 @@ public class SwerveModule {
      * @param turn The motor used to turn the module.
      * @param go   The motor used to drive the module.
      */
-    public SwerveModule(Falcon turn, Falcon go) {
+    public SwerveModule(Falcon turn, Falcon go, MotionController goController) {
         this.turn = turn;
         this.go = go;
+
+        go.setVelocityPD(goController);
 
         // Set current limits on the motors to protect them from drawing too much power.
         turn.setCurrentLimit(35); // The current limit for the turning motor.
@@ -38,6 +42,13 @@ public class SwerveModule {
      */
     public void setGoVoltage(double voltage) {
         go.setVoltage(voltage);
+    }
+
+    /**
+     * sets go motor velocity in in/sec
+     */
+    public void setGoVelocity(double velocity) {
+        go.setVelocity(velocity * inchesPerRotation);
     }
 
     /**
@@ -82,6 +93,8 @@ public class SwerveModule {
         go.resetEncoder();
     }
 
+    final double inchesPerRotation = 6.75 * (3.82 * Math.PI);
+
     /**
      * Gets the distance the module has traveled in inches.
      * 
@@ -90,9 +103,9 @@ public class SwerveModule {
      */
     public double getGoReading() {
         // Calculate the compensation for wheel turns based on the turn angle.
-        final double turnCompensation = 0; // 3.75 * (getUnconformedTurnReading() / 360.0);
+        final double turnCompensation = 3.75 * (getUnconformedTurnReading() / 360.0);
         // Convert the encoder reading to inches traveled.
-        return turnCompensation + (go.getDegrees() / 360.0) / 6.75 * (3.82 * Math.PI);
+        return turnCompensation + (go.getDegrees() / 360.0) / inchesPerRotation;
         // Note: 6.75 motor rotations per 1 wheel rotation, wheel diameter is 3.82
         // inches.
     }
